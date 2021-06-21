@@ -136,7 +136,7 @@ class ChannelHandler(web.RequestHandler):
 
     @gen.coroutine
     def get(self, channel):
-        key = "for now, hard code youtube api key here"
+        key = "<key goes here>"
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
