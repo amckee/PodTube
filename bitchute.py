@@ -75,9 +75,11 @@ class ChannelHandler(web.RequestHandler):
         el = bs.find("div", "channel-banner")
         feed.title( el.find("p", "name").text )
         #feed.description( el.find("div", "channel-videos-text").text )
-        feed.description( "" )
+        feed.image( el.find("div", "image-container").find("img")['src'] )
+        feed.description( "Bitchute user name: %s" % el.find("p", "owner").text )
         feed.id( el.find("a", "spa")['href'] )
-        feed.link( "https://bitchute.com/%s" % {'href': el.find("a", "spa")['href']} )
+        feedurl = "https://bitchute.com/" + el.find("a", "spa")['href']
+        feed.link( {'href': feedurl, 'rel': 'self'} )
         #feed.author( el.find("p", "owner").text )
         feed.language('en')
 
@@ -90,4 +92,4 @@ class ChannelHandler(web.RequestHandler):
             date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
             item.pubDate( date )
 
-        return feed.rss_str(pretty=True)
+        return feed.rss_str( pretty=True )
