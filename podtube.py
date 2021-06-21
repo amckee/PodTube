@@ -13,7 +13,7 @@ import bitchute
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-__version__ = '3.1'
+__version__ = '3.1.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)

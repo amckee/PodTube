@@ -24,7 +24,7 @@ from tornado import web
 import datetime, pytz
 tz = pytz.utc
 
-debug = True
+debug = False
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -43,6 +43,7 @@ class ChannelHandler(web.RequestHandler):
     def set_options(self):
         opts = Options()
         opts.set_preference( "browser.tabs.closeWindowWithLastTab", "true" )
+        opts.headless = True
         opts.service_log_path = os.devnull
         return opts
 
@@ -57,26 +58,27 @@ class ChannelHandler(web.RequestHandler):
         else:
             # Load the URL and grab the html after javascript gets a chance to do its thing
             with webdriver.Firefox( options=self.set_options() ) as driver:
-                wait = WebDriverWait( driver, 10 )
+                #wait = WebDriverWait( driver, 10 )
                 driver.get( url )
                 time.sleep( 5 )
-                el = driver.find("div", "wrapper" )
-                html = el.text
+                el = driver.find_element_by_id("wrapper")
+                html = el.get_attribute("innerHTML")
         return html
 
-    def generate_rss( self, url ):
-        bs = BeautifulSoup( self.get_html( url ) , "html.parser" )
+    def generate_rss( self, channel ):
+        bs = BeautifulSoup( self.get_html( channel ) , "html.parser" )
 
         feed = FeedGenerator()
         feed.load_extension('podcast')
 
         ## gather channel information
-        el = bs.find("div", "channel-videos-text-container")
-        feed.title( el.find("div", "channel-videos-title").text )
-        feed.description( el.find("div", "channel-videos-text").text )
+        el = bs.find("div", "channel-banner")
+        feed.title( el.find("p", "name").text )
+        #feed.description( el.find("div", "channel-videos-text").text )
+        feed.description( "" )
         feed.id( el.find("a", "spa")['href'] )
-        feed.link( {'href': el.find("a", "spa")['href']} )
-        feed.author( el.find("p", "owner").href )
+        feed.link( "https://bitchute.com/%s" % {'href': el.find("a", "spa")['href']} )
+        #feed.author( el.find("p", "owner").text )
         feed.language('en')
 
         ## loop through videos build feed item dict
