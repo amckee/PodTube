@@ -8,22 +8,24 @@ from pathlib import Path
 
 import misaka
 import youtube
+import bitchute
 
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-__version__ = '3.1'
+__version__ = '3.1.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
 
 def make_app(key="test"):
     webapp = web.Application([
-        (r'/channel/(.*)', youtube.ChannelHandler),
-        (r'/playlist/(.*)', youtube.PlaylistHandler),
-        (r'/video/(.*)', youtube.VideoHandler),
-        (r'/audio/(.*)', youtube.AudioHandler),
-        (r'/', youtube.FileHandler),
+        (r'/youtube/channel/(.*)', youtube.ChannelHandler),
+        (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
+        (r'/youtube/video/(.*)', youtube.VideoHandler),
+        (r'/youtube/audio/(.*)', youtube.AudioHandler),
+        (r'/youtube/', youtube.FileHandler),
+        (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
@@ -34,13 +36,9 @@ if __name__ == '__main__':
         os.mkdir('audio')
     parser = ArgumentParser(prog='PodTube')
     parser.add_argument(
-        'key',
-        help='Google\'s API Key'
-    )
-    parser.add_argument(
         'port',
         type=int,
-        default=80,
+        default=15000,
         nargs='?',
         help='Port Number to listen on'
     )
@@ -70,10 +68,9 @@ if __name__ == '__main__':
         filename=args.log_file,
         filemode='a'
     )
-    key = args.key
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
-    app = make_app( key )
+    app = make_app( )
     app.listen(args.port)
     logging.info(f'Started listening on {args.port}')
     ioloop.PeriodicCallback(

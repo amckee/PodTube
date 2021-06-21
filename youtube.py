@@ -136,7 +136,7 @@ class ChannelHandler(web.RequestHandler):
 
     @gen.coroutine
     def get(self, channel):
-        key = "<key goes here>"
+        key = "AIzaSyAodcZ0lXZNGb8a08i92jrDxSVlAAIH5y4"
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
