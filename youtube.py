@@ -16,7 +16,7 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = '3.1'
+__version__ = 'v2021.06.21.1'
 
 def cleanup():
     # Globals
