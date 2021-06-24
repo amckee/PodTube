@@ -4,9 +4,17 @@ This is a fork of a python application for converting Youtube playlists and chan
 
 Current list of supported/planned hosts:
 [x] Bitchute
+    [x] Subscriptions
+    [ ] Download/Stream
 [ ] Odysee
+    [ ] Subscriptions
+    [ ] Download/Stream
 [ ] Rumble
+    [ ] Subscriptions
+    [ ] Download/Stream
 [ ] DailyMotion
+    [ ] Subscriptions
+    [ ] Download/Stream
 
 ### [LICENSE](https://github.com/aquacash5/podtube/blob/master/LICENSE)
 
