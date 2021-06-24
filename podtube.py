@@ -13,18 +13,18 @@ import bitchute
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-__version__ = 'v2021.06.21.1'
+__version__ = 'v2021.06.24.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
 
 def make_app(key="test"):
     webapp = web.Application([
-        (r'/youtube/channel/(.*)', youtube.ChannelHandler),
-        (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
-        (r'/youtube/video/(.*)', youtube.VideoHandler),
-        (r'/youtube/audio/(.*)', youtube.AudioHandler),
-        (r'/youtube/', youtube.FileHandler),
+        (r'/channel/(.*)', youtube.ChannelHandler),
+        (r'/playlist/(.*)', youtube.PlaylistHandler),
+        (r'/video/(.*)', youtube.VideoHandler),
+        (r'/audio/(.*)', youtube.AudioHandler),
+        (r'/', youtube.FileHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)

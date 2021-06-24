@@ -16,7 +16,7 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2021.06.21.1'
+__version__ = 'v2021.06.24.1'
 
 def cleanup():
     # Globals
@@ -112,6 +112,7 @@ def convert_videos():
 def get_youtube_url(video):
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
+    logging.info("Full URL: http://www.youtube.com/watch?v=%s" % video)
     yt = YouTube('http://www.youtube.com/watch?v=' + video)
     vid = yt.streams.get_highest_resolution().url
     parts = {
