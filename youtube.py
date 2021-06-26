@@ -1,9 +1,9 @@
-#!/usr/bin/python3
 import datetime
 import logging
 import os
 import psutil
 import requests
+import misaka
 
 from pathlib import Path
 
@@ -12,6 +12,7 @@ from pytube import YouTube
 from tornado import gen, httputil, ioloop, iostream, process, web
 
 key = None
+
 video_links = {}
 playlist_feed = {}
 channel_feed = {}
@@ -123,6 +124,8 @@ def get_youtube_url(video):
         'expire': datetime.datetime.fromtimestamp(int(parts['expire']))
     }
     video_links[video] = link
+    logging.info( "video: %s" % video )
+    logging.info( "vid: %s" % vid )
     return link['url']
 
 def set_key( key=None ):
@@ -136,7 +139,7 @@ class ChannelHandler(web.RequestHandler):
 
     @gen.coroutine
     def get(self, channel):
-        key = "<key goes here>"
+        key = "AIzaSyAodcZ0lXZNGb8a08i92jrDxSVlAAIH5y4"
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
@@ -232,7 +235,7 @@ class ChannelHandler(web.RequestHandler):
                 fg.podcast.itunes_author(snippet['channelTitle'])
                 fg.image(snippet['thumbnails'][icon]['url'])
                 fg.link(
-                    href=f'http://youtube.com/channel/{channel}',
+                    href=f'http://youtube.com/channel/%s' % channel[0],
                     rel='self'
                 )
                 fg.language('en-US')

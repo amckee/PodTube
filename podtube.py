@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument(
         'port',
         type=int,
-        default=80,
+        default=15000,
         nargs='?',
         help='Port Number to listen on'
     )
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format=args.log_format,
         filename=args.log_file,
         filemode='a'
