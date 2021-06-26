@@ -2,7 +2,6 @@
 
 # basic, standard libs
 import logging
-from argparse import ArgumentParser
 import requests
 import os,sys
 import time
@@ -30,7 +29,7 @@ class ChannelHandler(web.RequestHandler):
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
-    
+
     def get(self, channel):
         # make/build RSS feed
         url = "https://bitchute.com/channel/%s" % channel

@@ -9,6 +9,7 @@ from pathlib import Path
 import misaka
 import youtube
 import bitchute
+import rumble
 
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
@@ -25,6 +26,7 @@ def make_app(key="test"):
         (r'/video/(.*)', youtube.VideoHandler),
         (r'/audio/(.*)', youtube.AudioHandler),
         (r'/', youtube.FileHandler),
+        (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
