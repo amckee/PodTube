@@ -9,12 +9,6 @@ import time
 
 # web grabbing and parsing libs
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.expected_conditions import presence_of_element_located
 
 from feedgen.feed import FeedGenerator
 
@@ -57,12 +51,8 @@ class ChannelHandler(web.RequestHandler):
                 html = f.read()
         else:
             # Load the URL and grab the html after javascript gets a chance to do its thing
-            with webdriver.Firefox( options=self.set_options() ) as driver:
-                #wait = WebDriverWait( driver, 10 )
-                driver.get( url )
-                time.sleep( 5 )
-                el = driver.find_element_by_id("wrapper")
-                html = el.get_attribute("innerHTML")
+            r = requests.get( url )
+            html = r.text
         return html
 
     def generate_rss( self, channel ):
@@ -88,8 +78,14 @@ class ChannelHandler(web.RequestHandler):
             item = feed.add_entry()
             item.title( vid.find("div", "channel-videos-title").text )
             item.description( vid.find("div", "channel-videos-text").text )
-            item.link( vid.find("div", "channel-videos-title").href )
+            link = vid.find("div", "channel-videos-title").find("a", "spa").href
+            slink = link.split('/')
+            item.link( link )
             date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
             item.pubDate( date )
+            item.enclosure(
+                url = "http://%s/bitchute/video/%s" % ( self.request.host, link ),
+                type="video/mp4"
+            )
 
         return feed.rss_str( pretty=True )
