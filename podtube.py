@@ -14,7 +14,7 @@ import rumble
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-__version__ = 'v2021.06.24.1'
+__version__ = 'v2021.06.27.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
