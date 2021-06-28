@@ -17,8 +17,6 @@ from tornado import web
 import datetime, pytz
 tz = pytz.utc
 
-debug = False
-
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
@@ -33,25 +31,13 @@ class ChannelHandler(web.RequestHandler):
         self.write( feed )
         self.finish()
 
-    def set_options(self):
-        opts = Options()
-        opts.set_preference( "browser.tabs.closeWindowWithLastTab", "true" )
-        opts.headless = True
-        opts.service_log_path = os.devnull
-        return opts
-
     def get_html( self, channel ):
         url = "https://bitchute.com/channel/%s" % channel
         html = ""
-        if debug:
-            # Load html from sample file. Avoids repeated requests while debugging.
-            with open("bitchute_sample.mhtml") as f:
-                html = f.read()
-        else:
-            logging.info("URL: %s" % url)
-            r = requests.get( url )
-            bs = BeautifulSoup( r.text, "lxml" )
-            html = str(bs.find("div", "container"))
+        logging.info("URL: %s" % url)
+        r = requests.get( url )
+        bs = BeautifulSoup( r.text, "lxml" )
+        html = str(bs.find("div", "container"))
         return html
 
     def generate_rss( self, channel ):
