@@ -52,15 +52,7 @@ class ChannelHandler(web.RequestHandler):
             logging.info("URL: %s" % url)
             r = requests.get( url )
             bs = BeautifulSoup( r.text, "lxml" )
-            #html = str(bs.find("div", "channel-videos-list"))
             html = str(bs.find("div", "container"))
-            # # Load the URL and grab the html after javascript gets a chance to do its thing
-            # with webdriver.Firefox( options=self.set_options() ) as driver:
-            #     #wait = WebDriverWait( driver, 10 )
-            #     driver.get( url )
-            #     time.sleep( 5 )
-            #     el = driver.find_element_by_id("wrapper")
-            #     html = el.get_attribute("innerHTML")
         return html
 
     def generate_rss( self, channel ):
