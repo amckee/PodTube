@@ -27,6 +27,7 @@ def make_app(key="test"):
         (r'/audio/(.*)', youtube.AudioHandler),
         (r'/', youtube.FileHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
+        (r'/rumble/video/(.*)', rumble.VideoHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})

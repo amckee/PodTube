@@ -8,3 +8,8 @@ class ChannelHandler(web.RequestHandler):
 
     def get(self, channel):
         logging.info("In rumble channel handler")
+
+class VideoHandler(web.RequestHandler):
+    def get(self, video):
+        logging.info("Not yet implemented.")
+        self.redirect( f'http://{self.request.host}')
