@@ -26,6 +26,7 @@ def make_app(key="test"):
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
         (r'/youtube/', youtube.FileHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
+        (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp

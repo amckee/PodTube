@@ -56,13 +56,16 @@ class ChannelHandler(web.RequestHandler):
             with open("bitchute_sample.mhtml") as f:
                 html = f.read()
         else:
-            # Load the URL and grab the html after javascript gets a chance to do its thing
-            with webdriver.Firefox( options=self.set_options() ) as driver:
-                #wait = WebDriverWait( driver, 10 )
-                driver.get( url )
-                time.sleep( 5 )
-                el = driver.find_element_by_id("wrapper")
-                html = el.get_attribute("innerHTML")
+            r = requests.get( url )
+            bs = BeautifulSoup( r.text, "lxml" )
+            html = bs.find("div", "channel-videos-list")
+            # # Load the URL and grab the html after javascript gets a chance to do its thing
+            # with webdriver.Firefox( options=self.set_options() ) as driver:
+            #     #wait = WebDriverWait( driver, 10 )
+            #     driver.get( url )
+            #     time.sleep( 5 )
+            #     el = driver.find_element_by_id("wrapper")
+            #     html = el.get_attribute("innerHTML")
         return html
 
     def generate_rss( self, channel ):
@@ -91,5 +94,16 @@ class ChannelHandler(web.RequestHandler):
             item.link( vid.find("div", "channel-videos-title").href )
             date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
             item.pubDate( date )
+            item.enclosure( )
 
         return feed.rss_str( pretty=True )
+
+def get_bitchute_url(video):
+    r = requests.get("https://bitchutte.com/video/%s" % video)
+    bs = BeautifulSoup( r.text, "html.parser" )
+    return bs.find("video").find("source")['src']
+
+class VideoHandler(web.RequestHandler):
+    def get(self, video):
+        logging.info("Video: %s" % video)
+        self.redirect(get_bitchute_url(video))
