@@ -54,7 +54,7 @@ class ChannelHandler(web.RequestHandler):
         feed.image( el.find("div", "image-container").find("img")['src'] )
         feed.description( "Bitchute user name: %s" % el.find("p", "owner").text )
         feed.id( el.find("a", "spa")['href'] )
-        feedurl = "https://bitchute.com/" + el.find("a", "spa")['href']
+        feedurl = "https://bitchute.com" + el.find("a", "spa")['href']
         feed.link( {'href': feedurl, 'rel': 'self'} )
         #feed.author( el.find("p", "owner").text )
         feed.language('en')
