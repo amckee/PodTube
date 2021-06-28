@@ -28,6 +28,7 @@ def make_app(key="test"):
         (r'/', youtube.FileHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
+        (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
