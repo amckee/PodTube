@@ -19,4 +19,4 @@ Current list of supported/planned hosts:
 For basic usage, see the original project page. 
 
 To use Bitchute channels:
-https://yourserver.com/bitchute/channel/<bitchute channel name>
+https://yourserver.com/bitchute/channel/bitchute-channel-name
