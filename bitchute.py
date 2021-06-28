@@ -43,20 +43,29 @@ class ChannelHandler(web.RequestHandler):
 
     def get_html( self, channel ):
         url = "https://bitchute.com/channel/%s" % channel
-        logging.error("URL: %s" % url)
         html = ""
         if debug:
             # Load html from sample file. Avoids repeated requests while debugging.
             with open("bitchute_sample.mhtml") as f:
                 html = f.read()
         else:
-            # Load the URL and grab the html after javascript gets a chance to do its thing
+            logging.info("URL: %s" % url)
             r = requests.get( url )
-            html = r.text
+            bs = BeautifulSoup( r.text, "lxml" )
+            #html = str(bs.find("div", "channel-videos-list"))
+            html = str(bs.find("div", "container"))
+            # # Load the URL and grab the html after javascript gets a chance to do its thing
+            # with webdriver.Firefox( options=self.set_options() ) as driver:
+            #     #wait = WebDriverWait( driver, 10 )
+            #     driver.get( url )
+            #     time.sleep( 5 )
+            #     el = driver.find_element_by_id("wrapper")
+            #     html = el.get_attribute("innerHTML")
         return html
 
     def generate_rss( self, channel ):
-        bs = BeautifulSoup( self.get_html( channel ) , "html.parser" )
+        logging.info("Channel: %s" % channel)
+        bs = BeautifulSoup( self.get_html( channel ) , "lxml" )
 
         feed = FeedGenerator()
         feed.load_extension('podcast')
@@ -78,14 +87,27 @@ class ChannelHandler(web.RequestHandler):
             item = feed.add_entry()
             item.title( vid.find("div", "channel-videos-title").text )
             item.description( vid.find("div", "channel-videos-text").text )
-            link = vid.find("div", "channel-videos-title").find("a", "spa").href
-            slink = link.split('/')
-            item.link( link )
+            link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
+
+            item.link( 
+                href = f'http://{self.request.host}/bitchute{link}',
+                title = vid.find("div", "channel-videos-title").text  
+            )
             date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
             item.pubDate( date )
-            item.enclosure(
-                url = "http://%s/bitchute/video/%s" % ( self.request.host, link ),
-                type="video/mp4"
+            item.enclosure( 
+                url = f'http://{self.request.host}/bitchute{link}',
+                type = "video/mp4"
             )
 
         return feed.rss_str( pretty=True )
+
+def get_bitchute_url(video):
+    r = requests.get("https://bitchute.com/video/%s" % video)
+    bs = BeautifulSoup( r.text, "html.parser" )
+    return bs.find("video").find("source")['src']
+
+class VideoHandler(web.RequestHandler):
+    def get(self, video):
+        logging.info("Video: %s" % video)
+        self.redirect(get_bitchute_url(video))
