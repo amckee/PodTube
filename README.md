@@ -7,7 +7,7 @@ Current list of supported/planned hosts:
    - [x] Subscriptions
    - [x] Download/Stream
 - [ ] Rumble
-   - [ ] Subscriptions
+   - [x] Subscriptions
    - [ ] Download/Stream
 - [ ] Odysee
    - [ ] Subscriptions
@@ -16,7 +16,10 @@ Current list of supported/planned hosts:
    - [ ] Subscriptions
    - [ ] Download/Stream
 
-For basic usage, see the original project page. 
+For basic usage, see the original project page. For additional functionality provided by this fork, see below:
 
 To use Bitchute channels:
-https://yourserver.com/bitchute/channel/bitchute-channel-name
+http://yourserver.com/bitchute/channel/bitchute-channel-name
+
+For Rumble channels:
+http://yourserver.com/rumble/channel/rumble-channel-name
