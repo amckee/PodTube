@@ -24,7 +24,7 @@ class ChannelHandler(web.RequestHandler):
 
     def get(self, channel):
         # make/build RSS feed
-        url = "https://bitchute.com/channel/%s" % channel
+        url = "https://bitchute.com/channel/%s/?showall=1" % channel
         logging.info("Handling Bitchute Channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
@@ -51,7 +51,7 @@ class ChannelHandler(web.RequestHandler):
         el = bs.find("div", "channel-banner")
         feed.title( el.find("p", "name").text )
         #feed.description( el.find("div", "channel-videos-text").text )
-        feed.image( el.find("div", "image-container").find("img")['src'] )
+        feed.image( el.find("div", "image-container").find("img")['data-src'] )
         feed.description( "Bitchute user name: %s" % el.find("p", "owner").text )
         feed.id( el.find("a", "spa")['href'] )
         feedurl = "https://bitchute.com" + el.find("a", "spa")['href']
