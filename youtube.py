@@ -1,15 +1,18 @@
+#pylint: disable=E1101
 import datetime
 import logging
 import os
 import psutil
 import requests
 import misaka
+import glob
 
 from pathlib import Path
 
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
 from tornado import gen, httputil, ioloop, iostream, process, web
+from tornado.locks import Semaphore
 
 key = None
 
@@ -17,7 +20,10 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2021.06.24.1'
+__version__ = 'v2021.07.13.1'
+
+conversion_queue = {}
+converting_lock = Semaphore(2)
 
 def cleanup():
     # Globals
