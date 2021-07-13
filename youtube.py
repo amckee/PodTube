@@ -1,15 +1,18 @@
+#pylint: disable=E1101
 import datetime
 import logging
 import os
 import psutil
 import requests
 import misaka
+import glob
 
 from pathlib import Path
 
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
 from tornado import gen, httputil, ioloop, iostream, process, web
+from tornado.locks import Semaphore
 
 key = None
 
@@ -17,7 +20,10 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2021.06.24.1'
+__version__ = 'v2021.07.13.1'
+
+conversion_queue = {}
+converting_lock = Semaphore(2)
 
 def cleanup():
     # Globals
@@ -207,7 +213,7 @@ class ChannelHandler(web.RequestHandler):
                 fg.generator(
                     'PodTube (python-feedgen)',
                     __version__,
-                    'https://github.com/aquacash5/PodTube'
+                    'https://github.com/amckee/PodTube'
                 )
                 for item in response['items']:
                     if item['snippet']['type'] != 'upload':
@@ -231,8 +237,8 @@ class ChannelHandler(web.RequestHandler):
                 fg.description(snippet['description'] or ' ')
                 fg.author(
                     name='Podtube',
-                    email='kylejbloom+podtube@gmail.com',
-                    uri='https://github.com/aquacash5/PodTube')
+                    email='armware+podtube@gmail.com',
+                    uri='https://github.com/amckee/PodTube')
                 fg.podcast.itunes_author(snippet['channelTitle'])
                 fg.image(snippet['thumbnails'][icon]['url'])
                 fg.link(
@@ -244,7 +250,7 @@ class ChannelHandler(web.RequestHandler):
                 fg.podcast.itunes_explicit('no')
                 fg.podcast.itunes_owner(
                     name='Podtube',
-                    email='kylejbloom+podtube@gmail.com'
+                    email='armware+podtube@gmail.com'
                 )
                 fg.podcast.itunes_summary(snippet['description'])
                 fg.podcast.itunes_category(cat='Technology')
@@ -271,12 +277,12 @@ class ChannelHandler(web.RequestHandler):
                 fe.updated(snippet['publishedAt'])
                 if channel[1] == 'video':
                     fe.enclosure(
-                        url=f'http://{self.request.host}/video/{current_video}',
+                        url=f'http://{self.request.host}/youtube/video/{current_video}',
                         type="video/mp4"
                     )
                 elif channel[1] == 'audio':
                     fe.enclosure(
-                        url=f'http://{self.request.host}/audio/{current_video}',
+                        url=f'http://{self.request.host}/youtube/audio/{current_video}',
                         type="audio/mpeg"
                     )
                 fe.author(name=snippet['channelTitle'])
@@ -346,7 +352,7 @@ class PlaylistHandler(web.RequestHandler):
         fg.generator(
             'PodTube (python-feedgen)',
             __version__,
-            'https://github.com/aquacash5/PodTube'
+            'https://github.com/amckee/PodTube'
         )
         snippet = response['items'][0]['snippet']
         icon = max(
@@ -359,12 +365,12 @@ class PlaylistHandler(web.RequestHandler):
             snippet['title']
         )
         fg.title(snippet['title'])
-        fg.id('http://' + self.request.host + self.request.uri)
+        fg.id('http://' + self.request.host + 'youtube/' + self.request.uri)
         fg.description(snippet['description'] or ' ')
         fg.author(
             name='Podtube',
-            email='kylejbloom+podtube@gmail.com',
-            uri='https://github.com/aquacash5/PodTube'
+            email='armware+podtube@gmail.com',
+            uri='https://github.com/amckee/PodTube'
         )
         fg.podcast.itunes_author(snippet['channelTitle'])
         fg.image(snippet['thumbnails'][icon]['url'])
@@ -377,7 +383,7 @@ class PlaylistHandler(web.RequestHandler):
         fg.podcast.itunes_explicit('no')
         fg.podcast.itunes_owner(
             name='Podtube',
-            email='kylejbloom+podtube@gmail.com'
+            email='armware+podtube@gmail.com'
         )
         fg.podcast.itunes_summary(snippet['description'])
         fg.podcast.itunes_category(cat='Technology')
