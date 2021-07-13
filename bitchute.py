@@ -64,6 +64,10 @@ class ChannelHandler(web.RequestHandler):
             item = feed.add_entry()
             item.title( vid.find("div", "channel-videos-title").text )
             item.description( vid.find("div", "channel-videos-text").text )
+
+            ## why does this work fine in youtube.py!?
+            #item.podcast.itunes_image( vid.find("div", "channel-videos-image").find("img")['src'] )
+            
             link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
 
             item.link( 
