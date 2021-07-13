@@ -16,7 +16,10 @@ Current list of supported/planned hosts:
    - [ ] Subscriptions
    - [ ] Download/Stream
 
-For basic usage, see the original project page. For additional functionality provided by this fork, see below:
+For basic or original usage that may be needed, see the original project page. To use this fork:
+
+To use Youtube channels:
+https://yourserver.com/youtube/channel/youtube-channel-id
 
 To use Bitchute channels:
 http://yourserver.com/bitchute/channel/bitchute-channel-name

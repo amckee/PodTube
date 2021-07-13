@@ -21,10 +21,10 @@ converting_lock = Semaphore(2)
 
 def make_app(key="test"):
     webapp = web.Application([
-        (r'/channel/(.*)', youtube.ChannelHandler),
-        (r'/playlist/(.*)', youtube.PlaylistHandler),
-        (r'/video/(.*)', youtube.VideoHandler),
-        (r'/audio/(.*)', youtube.AudioHandler),
+        (r'/youtube/channel/(.*)', youtube.ChannelHandler),
+        (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
+        (r'/youtube/video/(.*)', youtube.VideoHandler),
+        (r'/youtube/audio/(.*)', youtube.AudioHandler),
         (r'/', youtube.FileHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
