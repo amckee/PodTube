@@ -21,7 +21,7 @@ def make_app(key="test"):
         (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
-        (r'/', youtube.FileHandler),
+        (r'/youtube/', youtube.FileHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),

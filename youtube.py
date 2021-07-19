@@ -119,9 +119,12 @@ def convert_videos():
 def get_youtube_url(video):
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
-    logging.info("Full URL: http://www.youtube.com/watch?v=%s" % video)
-    yt = YouTube('http://www.youtube.com/watch?v=' + video)
+    yturl = "https://www.youtube.com/watch?v=%s" % video
+    logging.info("Full URL: %s" % yturl)
+    yt = YouTube(yturl)
     vid = yt.streams.get_highest_resolution().url
+    logging.info("Stream count: %s" % len(yt.streams))
+    logging.info("vid is now: %s" % vid)
     parts = {
         part.split('=')[0]: part.split('=')[1]
         for part in vid.split('?')[-1].split('&')
