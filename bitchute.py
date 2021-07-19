@@ -1,21 +1,12 @@
-#!/usr/bin/python3
-
-# basic, standard libs
 import logging
 import requests
 import os,sys
 import time
-
-# web grabbing and parsing libs
-from bs4 import BeautifulSoup
-
-from feedgen.feed import FeedGenerator
-
-from tornado import web
-
-## setup timezone object, needed for pubdate
 import datetime, pytz
-tz = pytz.utc
+
+from bs4 import BeautifulSoup
+from feedgen.feed import FeedGenerator
+from tornado import web
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -24,9 +15,9 @@ class ChannelHandler(web.RequestHandler):
 
     def get(self, channel):
         # make/build RSS feed
-        url = "https://bitchute.com/channel/%s" % channel
-        logging.info("Handling Bitchute Channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
+        url = "https://bitchute.com/channel/%s" % channel
+        logging.info("Bitchute Channel: %s" % url)
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
@@ -50,13 +41,14 @@ class ChannelHandler(web.RequestHandler):
         ## gather channel information
         el = bs.find("div", "channel-banner")
         feed.title( el.find("p", "name").text )
-        #feed.description( el.find("div", "channel-videos-text").text )
         feed.image( el.find("div", "image-container").find("img")['src'] )
         feed.description( "Bitchute user name: %s" % el.find("p", "owner").text )
         feed.id( el.find("a", "spa")['href'] )
         feedurl = "https://bitchute.com" + el.find("a", "spa")['href']
-        feed.link( {'href': feedurl, 'rel': 'self'} )
-        #feed.author( el.find("p", "owner").text )
+        feed.link({
+            'href': feedurl, 
+            'rel': 'self'
+        })
         feed.language('en')
 
         ## loop through videos build feed item dict
@@ -70,13 +62,12 @@ class ChannelHandler(web.RequestHandler):
                 href = f'http://{self.request.host}/bitchute{link}',
                 title = vid.find("div", "channel-videos-title").text  
             )
-            date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
+            date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( pytz.utc )
             item.pubDate( date )
             item.enclosure( 
                 url = f'http://{self.request.host}/bitchute{link}',
                 type = "video/mp4"
             )
-
         return feed.rss_str( pretty=True )
 
 def get_bitchute_url(video):

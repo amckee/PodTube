@@ -439,6 +439,7 @@ class PlaylistHandler(web.RequestHandler):
                         url=f'http://{self.request.host}/audio/{current_video}',
                         type="audio/mpeg"
                     )
+                logging.info( "Final URL created for enclosure: %s" % f'http://{self.request.host}/video/{current_video}' )
                 fe.author(name=snippet['channelTitle'])
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
