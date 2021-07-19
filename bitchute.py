@@ -9,28 +9,32 @@ from feedgen.feed import FeedGenerator
 from tornado import web
 
 class ChannelHandler(web.RequestHandler):
+    @gen.coroutine
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
+    @gen.coroutine
     def get(self, channel):
         # make/build RSS feed
+        url = "https://bitchute.com/channel/%s/?showall=1" % channel
+        logging.info("Handling Bitchute Channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
-        url = "https://bitchute.com/channel/%s" % channel
         logging.info("Bitchute Channel: %s" % url)
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
 
+    @gen.coroutine
     def get_html( self, channel ):
-        url = "https://bitchute.com/channel/%s" % channel
-        html = ""
+        url = "https://bitchute.com/channel/%s/?showall=1" % channel
         logging.info("URL: %s" % url)
         r = requests.get( url )
         bs = BeautifulSoup( r.text, "lxml" )
         html = str(bs.find("div", "container"))
         return html
 
+    @gen.coroutine
     def generate_rss( self, channel ):
         logging.info("Channel: %s" % channel)
         bs = BeautifulSoup( self.get_html( channel ) , "lxml" )
@@ -41,7 +45,7 @@ class ChannelHandler(web.RequestHandler):
         ## gather channel information
         el = bs.find("div", "channel-banner")
         feed.title( el.find("p", "name").text )
-        feed.image( el.find("div", "image-container").find("img")['src'] )
+        feed.image( el.find("div", "image-container").find("img")['data-src'] )
         feed.description( "Bitchute user name: %s" % el.find("p", "owner").text )
         feed.id( el.find("a", "spa")['href'] )
         feedurl = "https://bitchute.com" + el.find("a", "spa")['href']
@@ -56,6 +60,10 @@ class ChannelHandler(web.RequestHandler):
             item = feed.add_entry()
             item.title( vid.find("div", "channel-videos-title").text )
             item.description( vid.find("div", "channel-videos-text").text )
+
+            ## why does this work fine in youtube.py!?
+            #item.podcast.itunes_image( vid.find("div", "channel-videos-image").find("img")['src'] )
+            
             link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
 
             item.link( 
