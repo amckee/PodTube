@@ -8,9 +8,7 @@ import time
 
 # web grabbing and parsing libs
 from bs4 import BeautifulSoup
-
 from feedgen.feed import FeedGenerator
-
 from tornado import web
 
 ## setup timezone object, needed for pubdate
@@ -18,10 +16,12 @@ import datetime, pytz
 tz = pytz.utc
 
 class ChannelHandler(web.RequestHandler):
+    @gen.coroutine
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
+    @gen.coroutine
     def get(self, channel):
         # make/build RSS feed
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
@@ -31,15 +31,16 @@ class ChannelHandler(web.RequestHandler):
         self.write( feed )
         self.finish()
 
+    @gen.coroutine
     def get_html( self, channel ):
-        url = "https://bitchute.com/channel/%s" % channel
-        html = ""
+        url = "https://bitchute.com/channel/%s/?showall=1" % channel
         logging.info("URL: %s" % url)
         r = requests.get( url )
         bs = BeautifulSoup( r.text, "lxml" )
         html = str(bs.find("div", "container"))
         return html
 
+    @gen.coroutine
     def generate_rss( self, channel ):
         logging.info("Channel: %s" % channel)
         bs = BeautifulSoup( self.get_html( channel ) , "lxml" )
