@@ -122,8 +122,8 @@ def get_youtube_url(video):
     yturl = "https://www.youtube.com/watch?v=%s" % video
     logging.info("Full URL: %s" % yturl)
     yt = YouTube(yturl)
-    vid = yt.streams.get_highest_resolution().url
     logging.info("Stream count: %s" % len(yt.streams))
+    vid = yt.streams.get_highest_resolution().url
     logging.info("vid is now: %s" % vid)
     parts = {
         part.split('=')[0]: part.split('=')[1]
