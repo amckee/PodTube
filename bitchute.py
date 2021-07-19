@@ -27,13 +27,13 @@ class ChannelHandler(web.RequestHandler):
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
         logging.info("Handling Bitchute Channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
+        logging.info("Bitchute Channel: %s" % url)
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
 
     def get_html( self, channel ):
-        url = "https://bitchute.com/channel/%s" % channel
-        html = ""
+        url = "https://bitchute.com/channel/%s/?showall=1" % channel
         logging.info("URL: %s" % url)
         r = requests.get( url )
         bs = BeautifulSoup( r.text, "lxml" )
@@ -64,6 +64,10 @@ class ChannelHandler(web.RequestHandler):
             item = feed.add_entry()
             item.title( vid.find("div", "channel-videos-title").text )
             item.description( vid.find("div", "channel-videos-text").text )
+
+            ## why does this work fine in youtube.py!?
+            #item.podcast.itunes_image( vid.find("div", "channel-videos-image").find("img")['src'] )
+            
             link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
 
             item.link( 
