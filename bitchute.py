@@ -67,7 +67,8 @@ class ChannelHandler(web.RequestHandler):
 
             ## why does this work fine in youtube.py!?
             #item.podcast.itunes_image( vid.find("div", "channel-videos-image").find("img")['src'] )
-            
+            item.image = vid.find("div", "channel-videos-image").find("img")['src']
+
             link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
 
             item.link( 
@@ -80,6 +81,9 @@ class ChannelHandler(web.RequestHandler):
                 url = f'http://{self.request.host}/bitchute{link}',
                 type = "video/mp4"
             )
+
+            # span.video-duration
+            item.duration = vid.find("span", "video-duration").text
 
         return feed.rss_str( pretty=True )
 
