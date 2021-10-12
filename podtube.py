@@ -7,13 +7,10 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import misaka
-import youtube
-import bitchute
-import rumble
-
+import youtube, bitchute, rumble
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2021.07.13.1'
+__version__ = 'v2021.10.12.1'
 
 def make_app(key="test"):
     webapp = web.Application([

@@ -62,28 +62,34 @@ class ChannelHandler(web.RequestHandler):
         ## loop through videos build feed item dict
         for vid in bs.find_all("div", "channel-videos-container"):
             item = feed.add_entry()
-            item.title( vid.find("div", "channel-videos-title").text )
+            vidtitle = vid.find("div", "channel-videos-title").text
+            item.title( vidtitle )
+            logging.info( "Found video: %s" % vidtitle )
             item.description( vid.find("div", "channel-videos-text").text )
 
             ## why does this work fine in youtube.py!?
-            #item.podcast.itunes_image( vid.find("div", "channel-videos-image").find("img")['src'] )
+            vidimage = "https://bitchute.com" + vid.find("div", "channel-videos-image").find("img")['src']
+            logging.info("Found image: %s" % vidimage)
+            item.podcast.itunes_image( vidimage )
             item.image = vid.find("div", "channel-videos-image").find("img")['src']
 
             link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
 
             item.link( 
                 href = f'http://{self.request.host}/bitchute{link}',
-                title = vid.find("div", "channel-videos-title").text  
+                title = vid.find("div", "channel-videos-title").text
             )
             date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
             item.pubDate( date )
-            item.enclosure( 
+            item.enclosure(
                 url = f'http://{self.request.host}/bitchute{link}',
                 type = "video/mp4"
             )
 
             # span.video-duration
-            item.duration = vid.find("span", "video-duration").text
+            vidlength = vid.find("span", "video-duration").text
+            item.duration = vidlength
+            item.itunes_duration = vidlength
 
         return feed.rss_str( pretty=True )
 
