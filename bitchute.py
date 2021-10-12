@@ -69,7 +69,6 @@ class ChannelHandler(web.RequestHandler):
 
             ## why does this work fine in youtube.py!?
             vidimage = "https://bitchute.com" + vid.find("div", "channel-videos-image").find("img")['src']
-            logging.info("Found image: %s" % vidimage)
             item.podcast.itunes_image( vidimage )
             item.image = vid.find("div", "channel-videos-image").find("img")['src']
 
