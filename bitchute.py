@@ -68,9 +68,9 @@ class ChannelHandler(web.RequestHandler):
             item.description( vid.find("div", "channel-videos-text").text )
 
             ## why does this work fine in youtube.py!?
-            vidimage = "https://bitchute.com" + vid.find("div", "channel-videos-image").find("img")['src']
+            vidimage = vid.find("div", "channel-videos-image").find("img")['data-src']
             item.podcast.itunes_image( vidimage )
-            item.image = vid.find("div", "channel-videos-image").find("img")['src']
+            item.image = vidimage
 
             link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
 
