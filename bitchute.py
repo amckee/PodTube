@@ -25,23 +25,22 @@ class ChannelHandler(web.RequestHandler):
     def get(self, channel):
         # make/build RSS feed
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
-        logging.info("Handling Bitchute Channel: %s" % url)
+        logging.info("Handling Bitchute channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
-        logging.info("Bitchute Channel: %s" % url)
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
 
     def get_html( self, channel ):
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
-        logging.info("URL: %s" % url)
+        logging.info("Bitchute URL: %s" % url)
         r = requests.get( url )
         bs = BeautifulSoup( r.text, "lxml" )
         html = str(bs.find("div", "container"))
         return html
 
     def generate_rss( self, channel ):
-        logging.info("Channel: %s" % channel)
+        logging.info("Bitchute URL: %s" % channel)
         bs = BeautifulSoup( self.get_html( channel ) , "lxml" )
 
         feed = FeedGenerator()
@@ -101,4 +100,4 @@ def get_bitchute_url(video):
 class VideoHandler(web.RequestHandler):
     def get(self, video):
         logging.info("Video: %s" % video)
-        self.redirect(get_bitchute_url(video))
+        self.redirect( get_bitchute_url(video) )

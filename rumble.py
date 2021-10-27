@@ -1,5 +1,6 @@
-import logging
-import requests
+#!/usr/bin/python3
+
+import logging, requests
 import datetime, pytz
 
 from feedgen.feed import FeedGenerator
@@ -12,17 +13,24 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Accept-Ranges', 'bytes')
 
     def get(self, channel):
+        url = "https://rumble.com/c/" + channel
+        logging.info("Handling Rumble channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
-        url = "https://rumble.com/c/%s" % channel
-        logging.info("Rumble channel: %s" % url)
-        feed = self.generate_rss( url )
+        feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
     
-    def generate_rss( self, url ):
-        logging.info("Channel: %s" % url)
+    def get_html( self, channel ):
+        url = "https://rumble.com/c/" + channel
+        logging.info("Rumble URL: %s" % url)
         r = requests.get( url )
-        bs = BeautifulSoup( r.text, 'lxml' )
+        bs = BeautifulSoup( r.text, "lxml" )
+        html = str( bs.find("main") )
+        return html
+
+    def generate_rss( self, channel ):
+        logging.info("Channel: %s" % channel)
+        bs = BeautifulSoup( self.get_html( channel ), "lxml" )
 
         feed = FeedGenerator()
         feed.load_extension('podcast')
@@ -31,9 +39,9 @@ class ChannelHandler(web.RequestHandler):
         feed.title( bs.find("h1", "listing-header--title").text )
         feed.image( bs.find("img", "listing-header--thumb")['src'] )
         feed.description( "--" )
-        feed.id( url )
+        feed.id( channel )
         feed.link(
-            href = f'http://{self.request.host}/rumble/channel/{url}',
+            href = f'https://rumble.com/c/{channel}',
             rel = 'self'
         )
         feed.language('en')
@@ -67,13 +75,11 @@ class ChannelHandler(web.RequestHandler):
         return feed.rss_str( pretty=True )
 
 def get_rumble_url( video ):
-    #todo: parsing and such
-    vid = video.split('/')[3]
-    url = "https://rumble.com/%s" % vid
-    r = requests.get( url )
+    r = requests.get( "https://rumble.com/%s" % video )
     bs = BeautifulSoup( r.text, 'lxml' )
-    bs.find()
-    return video
+    import json
+    dat=json.loads(bs.find("script", type="application/ld+json").text)
+    return dat[0]['embedUrl']
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
