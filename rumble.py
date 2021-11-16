@@ -75,11 +75,15 @@ class ChannelHandler(web.RequestHandler):
         return feed.rss_str( pretty=True )
 
 def get_rumble_url( video ):
-    r = requests.get( "https://rumble.com/%s" % video )
+    url = "https://rumble.com/%s" % video
+    logging.info( "Getting URL: %s" % url )
+    r = requests.get( url )
     bs = BeautifulSoup( r.text, 'lxml' )
     import json
-    dat=json.loads(bs.find("script", type="application/ld+json").text)
-    return dat[0]['embedUrl']
+    dat=json.loads(bs.find("script", type="application/ld+json").string)
+    vidurl = dat[0]['embedUrl']
+    logging.info( "Found embedded URL: %s" % vidurl )
+    return vidurl
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
