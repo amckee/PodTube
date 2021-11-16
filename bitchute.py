@@ -3,8 +3,6 @@
 # basic, standard libs
 import logging
 import requests
-import os,sys
-import time
 
 # web grabbing and parsing libs
 from bs4 import BeautifulSoup

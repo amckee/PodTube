@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import logging, requests
 import datetime, pytz
 
@@ -19,7 +18,7 @@ class ChannelHandler(web.RequestHandler):
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
-    
+
     def get_html( self, channel ):
         url = "https://rumble.com/c/" + channel
         logging.info("Rumble URL: %s" % url)
