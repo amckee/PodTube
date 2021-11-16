@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import logging, requests
 import datetime, pytz
 
@@ -19,7 +18,7 @@ class ChannelHandler(web.RequestHandler):
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
-    
+
     def get_html( self, channel ):
         url = "https://rumble.com/c/" + channel
         logging.info("Rumble URL: %s" % url)
@@ -74,12 +73,46 @@ class ChannelHandler(web.RequestHandler):
             )
         return feed.rss_str( pretty=True )
 
-def get_rumble_url( video ):
-    r = requests.get( "https://rumble.com/%s" % video )
-    bs = BeautifulSoup( r.text, 'lxml' )
-    import json
-    dat=json.loads(bs.find("script", type="application/ld+json").text)
-    return dat[0]['embedUrl']
+async def get_rumble_url( video ):
+    url = "https://rumble.com/%s" % video
+    logging.info( "Found rumble vid: %s" % url )
+
+    #from requests_html import AsyncHTMLSession
+    from requests_html import AsyncHTMLSession
+
+    import nest_asyncio
+    nest_asyncio.apply()
+    ses = AsyncHTMLSession()
+    #r = ses.get( url )
+    r = await ses.get( url )
+    await r.html.arender()
+    html = r.raw_html
+
+    # from requests_html import HTMLSession
+    # asession = HTMLSession()
+    # async def get_video_link( turl ):
+    #     r = await asession.get( turl )
+    #     ar = await asession.render()
+    #     time.sleep(10)
+    #     return ar
+    # res = get_video_link( url )
+    # html = res.raw_html
+
+    ## https://github.com/psf/requests-html/issues/294#issuecomment-516709659
+    # import asyncio
+    # if asyncio.get_event_loop().is_running(): # Only patch if needed (i.e. running in Notebook, Spyder, etc)
+    #     import nest_asyncio
+    #     nest_asyncio.apply()
+
+    # session = AsyncHTMLSession()
+    # r = await session.get( url )
+    # await r.html.arender( sleep = 5 )
+    # html = r.html.raw_html
+    # await session.close()
+
+    bs = BeautifulSoup( html, 'lxml' )
+
+    return bs.find("title")
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
