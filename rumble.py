@@ -58,6 +58,7 @@ class ChannelHandler(web.RequestHandler):
                 href = link,
                 title = item.title()
             )
+
             dateformat = "%Y-%m-%d %H:%M:%S"
             viddatetime = video.find("time", "video-item--meta")['datetime']
             viddate = viddatetime.split('T')[0]
@@ -76,12 +77,26 @@ class ChannelHandler(web.RequestHandler):
 def get_rumble_url( video ):
     url = "https://rumble.com/%s" % video
     logging.info( "Getting URL: %s" % url )
+
+    ## first, we need to get the embed url from the data set
     r = requests.get( url )
     bs = BeautifulSoup( r.text, 'lxml' )
     import json
     dat=json.loads(bs.find("script", type="application/ld+json").string)
     vidurl = dat[0]['embedUrl']
     logging.info( "Found embedded URL: %s" % vidurl )
+
+    ## second, we get the url to the mp4 file
+    ## tricky stuff that will likely break a lot
+    ## but we need to parse out values within a javascript function
+    ## and remove escape backslashes
+    r = requests.get( vidurl )
+    bs = BeautifulSoup( r.text, 'lxml' )
+    el = bs.find("script").string
+    import re
+    lnk = re.search( "https.*\.mp4", bs.find( "script" ).string )
+    vidurl = lnk.group().split('"')[0].replace('\\', '')
+    logging.info( "Finally got the video URL: %s" % vidurl )
     return vidurl
 
 class VideoHandler(web.RequestHandler):
