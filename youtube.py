@@ -20,7 +20,7 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2021.11.17.1'
+__version__ = 'v2021.11.30.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)

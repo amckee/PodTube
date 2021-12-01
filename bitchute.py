@@ -15,6 +15,8 @@ from tornado import web
 import datetime, pytz
 tz = pytz.utc
 
+__version__ = 'v2021.11.30.1'
+
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
