@@ -67,6 +67,7 @@ class ChannelHandler(web.RequestHandler):
             vidtime = viddatetime.split('T')[1]
             vidtime = vidtime.split('-')[0]
             vidpubdate = viddate + " " + vidtime
+            item.podcast.itunes_duration( video.find('span', 'video-item--duration')['data-value'] )
 
             date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
             item.pubDate( date )
