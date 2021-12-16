@@ -85,10 +85,7 @@ class ChannelHandler(web.RequestHandler):
             )
 
             # span.video-duration
-            vidlength = vid.find("span", "video-duration").text
-            item.duration = vidlength
-            item.itunes_duration = vidlength
-            item.podcast.itunes_duration(vidlength)
+            item.podcast.itunes_duration( vid.find("span", "video-duration").text )
 
         return feed.rss_str( pretty=True )
 
