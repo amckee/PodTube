@@ -10,7 +10,7 @@ import misaka
 import youtube, bitchute, rumble
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2021.11.30.1'
+__version__ = 'v2021.12.15.1'
 
 def make_app(key="test"):
     webapp = web.Application([

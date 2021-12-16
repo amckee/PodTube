@@ -15,7 +15,7 @@ from tornado import web
 import datetime, pytz
 tz = pytz.utc
 
-__version__ = 'v2021.11.30.1'
+__version__ = 'v2021.12.15.1'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
