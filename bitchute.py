@@ -92,7 +92,17 @@ class ChannelHandler(web.RequestHandler):
 def get_bitchute_url(video):
     r = requests.get("https://bitchute.com/video/%s" % video)
     bs = BeautifulSoup( r.text, "html.parser" )
-    return bs.find("video").find("source")['src']
+    vidurl = ""
+    try:
+        vidurl = bs.find("video").find("source")['src']
+    except:
+        # not a straight bitchute video; check for embedded Rumble
+        rframe = bs.find( "iframe", "rumble" )
+        vid = rframe['src']
+        logging.info("Found in iframe: %s" % vid)
+        vidurl = vid
+
+    return vidurl
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
