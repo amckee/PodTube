@@ -15,7 +15,7 @@ from tornado import web
 import datetime, pytz
 tz = pytz.utc
 
-__version__ = 'v2021.12.15.1'
+__version__ = 'v2022.02.02.1'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -99,6 +99,8 @@ def get_bitchute_url(video):
         # not a straight bitchute video; check for embedded Rumble
         rframe = bs.find( "iframe", "rumble" )
         vid = rframe['src']
+        if vid.endswith("/?rel=0"):
+            vid = vid[:-7]
         logging.info("Found in iframe: %s" % vid)
         vidurl = vid
 
