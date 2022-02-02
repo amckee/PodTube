@@ -100,7 +100,7 @@ def get_bitchute_url(video):
         rframe = bs.find( "iframe", "rumble" )
         vid = rframe['src']
         if vid.endswith("/?rel=0"):
-            vid = vid[:-7]
+            vid = vid.replace("/?rel=0", ".mp4")
         logging.info("Found in iframe: %s" % vid)
         vidurl = vid
 
