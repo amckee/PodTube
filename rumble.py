@@ -16,7 +16,7 @@ class ChannelHandler(web.RequestHandler):
     def get(self, channel):
         logging.info( "Got channel: %s" % channel )
 
-        url = "https://rumble.com/c/{channel}"
+        url = "https://rumble.com/c/%s" % channel
         logging.info( "Handling Rumble URL: %s" % url )
         
         self.set_header('Content-type', 'application/rss+xml')
@@ -25,7 +25,7 @@ class ChannelHandler(web.RequestHandler):
         self.finish()
 
     def get_html( self, channel ):
-        url = "https://rumble.com/c/{channel}"
+        url = "https://rumble.com/c/%s" % channel
         logging.info("Rumble URL: %s" % url)
         r = requests.get( url )
         bs = BeautifulSoup( r.text, "lxml" )
