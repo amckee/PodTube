@@ -6,7 +6,7 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-__version__ = 'v2021.12.15.1'
+__version__ = 'v2022.03.23.1'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -14,15 +14,18 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Accept-Ranges', 'bytes')
 
     def get(self, channel):
-        url = "https://rumble.com/c/" + channel
-        logging.info("Handling Rumble channel: %s" % url)
+        logging.info( "Got channel: %s" % channel )
+
+        url = "https://rumble.com/c/{channel}"
+        logging.info( "Handling Rumble URL: %s" % url )
+        
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
         self.write( feed )
         self.finish()
 
     def get_html( self, channel ):
-        url = "https://rumble.com/c/" + channel
+        url = "https://rumble.com/c/{channel}"
         logging.info("Rumble URL: %s" % url)
         r = requests.get( url )
         bs = BeautifulSoup( r.text, "lxml" )
@@ -48,6 +51,78 @@ class ChannelHandler(web.RequestHandler):
         feed.language('en')
 
         ## Make item list from video list
+        videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
+        for video in videos:
+            item = feed.add_entry()
+            item.title( video.find("h3", "video-item--title").text )
+            item.description( "--" )
+            lnk = video.find("a", "video-item--a")
+            vid = lnk['href']
+            link = f'http://{self.request.host}/rumble/video' + vid
+            item.link(
+                href = link,
+                title = item.title()
+            )
+
+            dateformat = "%Y-%m-%d %H:%M:%S"
+            viddatetime = video.find("time", "video-item--meta")['datetime']
+            viddate = viddatetime.split('T')[0]
+            vidtime = viddatetime.split('T')[1]
+            vidtime = vidtime.split('-')[0]
+            vidpubdate = viddate + " " + vidtime
+            item.podcast.itunes_duration( video.find('span', 'video-item--duration')['data-value'] )
+
+            date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
+            item.pubDate( date )
+            item.enclosure(
+                url = link,
+                type = "video/mp4"
+            )
+        return feed.rss_str( pretty=True )
+
+class UserHandler(web.RequestHandler):
+    def head(self, user):
+        self.set_header('Content-type', 'application/rss+xml')
+        self.set_header('Accept-Ranges', 'bytes')
+    
+    def get(self, user):
+        logging.info( "Got user: %s" % user )
+
+        url = "https://rumble.com/user/%s" % user
+        logging.info( "Handling Rumble URL: %s" % url )
+
+        self.set_header('Content-type', 'application/rss+xml')
+        feed = self.generate_rss( user )
+        self.write( feed )
+        self.finish()
+    
+    def get_html( self, user ):
+        url = "https://rumble.com/user/%s" % user
+        logging.info("Rumble URL: %s" % url)
+        r = requests.get( url )
+        bs = BeautifulSoup( r.text, 'lxml' )
+        html = str( bs.find("main") )
+        return html
+    
+    def generate_rss( self, user ):
+        logging.info("User: %s" % user)
+        bs = BeautifulSoup( self.get_html( user ), 'lxml' )
+
+        feed = FeedGenerator()
+        feed.load_extension('podcast')
+
+        ## Get User/Channel Info
+        feed.title( bs.find("h1", "listing-header--title").text )
+        feed.image( bs.find("img", "listing-header--thumb")['src'] )
+        feed.description( "--" )
+        feed.id( user )
+        feed.link(
+            href = f'https://rumble.com/user/%s' % user,
+            rel = 'self'
+        )
+        feed.language('en')
+
+        ## Assemble RSS items list
         videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
         for video in videos:
             item = feed.add_entry()

@@ -11,7 +11,7 @@ import misaka
 import youtube, bitchute, rumble
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2022.02.02.2'
+__version__ = 'v2022.03.23.1'
 
 def make_app(key="test"):
     webapp = web.Application([
@@ -20,6 +20,7 @@ def make_app(key="test"):
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
         (r'/youtube/', youtube.FileHandler),
+        (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
