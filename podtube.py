@@ -8,10 +8,10 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import misaka
-import youtube, bitchute, rumble
+import youtube, bitchute, rumble, dailymotion
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2022.03.23.1'
+__version__ = 'v2022.03.23.2'
 
 def make_app(key="test"):
     webapp = web.Application([
@@ -25,6 +25,8 @@ def make_app(key="test"):
         (r'/rumble/video/(.*)', rumble.VideoHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/bitchute/video/(.*)', bitchute.VideoHandler),
+        (r'/dailymotion/channel/(.*)', dailymotion.ChannelHandler),
+        (r'/dailymotion/video/(.*)', dailymotion.VideoHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
