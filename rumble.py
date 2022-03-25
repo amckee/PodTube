@@ -133,10 +133,13 @@ class UserHandler(web.RequestHandler):
         for video in videos:
             item = feed.add_entry()
             item.title( video.find("h3", "video-item--title").text )
-            item.description( "--" )
+            item.description( video.find("a", {'rel': "author"}).text )
+
             lnk = video.find("a", "video-item--a")
             vid = lnk['href']
             link = f'http://{self.request.host}/rumble/video' + vid
+            icon = video.find("img", "video-item--img")['src']
+            item.podcast.itunes_image( icon )
             item.link(
                 href = link,
                 title = item.title()
