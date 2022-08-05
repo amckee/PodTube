@@ -41,9 +41,12 @@ class ChannelHandler(web.RequestHandler):
 
         ## Get Channel Info
         feed.title( bs.find("h1", "listing-header--title").text )
-        thumb = bs.find("img", "listing-header--thumb")['src']
-        if thumb is not None:
-            feed.image( thumb )
+        try:
+            thumb = bs.find("img", "listing-header--thumb")['src']
+            if thumb is not None:
+                feed.image( thumb )
+        except:
+            logging.info("Channel thumbnail not found")
         feed.description( "--" )
         feed.id( channel )
         feed.link(
