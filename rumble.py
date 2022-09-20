@@ -58,6 +58,17 @@ class ChannelHandler(web.RequestHandler):
         ## Make item list from video list
         videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
         for video in videos:
+            try:
+                video.find("span", "video-item--upcoming")
+                logging.info("Found upcoming video, skipping")
+            except:
+                pass
+            try:
+                video.find("span", "video-item--live")
+                logging.info("Found live video, skipping")
+            except:
+                pass
+            
             item = feed.add_entry()
             item.title( video.find("h3", "video-item--title").text )
             item.description( "--" )
