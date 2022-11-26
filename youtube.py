@@ -21,7 +21,7 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2021.11.30.1'
+__version__ = 'v2022.11.26.4'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
@@ -235,7 +235,7 @@ class ChannelHandler(web.RequestHandler):
                 try:
                     chan=snippet['channelTitle']
                 except KeyError:
-                    snippet['channelTitle'] = snippet['channelId']  #"[YT Title Not Found]"
+                    snippet['channelTitle'] = snippet['channelId']
                     logging.info("Channel title not found")
                 
                 logging.info(
@@ -281,7 +281,7 @@ class ChannelHandler(web.RequestHandler):
                 try:
                     chan=snippet['channelTitle']
                 except KeyError:
-                    snippet['channelTitle'] = "[YT Title Not Found]"
+                    snippet['channelTitle'] = snippet['channelId']
                     logging.info("Channel title not found")
                 
                 logging.debug(
