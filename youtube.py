@@ -6,6 +6,7 @@ import psutil
 import requests
 import misaka
 import glob
+from configparser import ConfigParser
 
 from pathlib import Path
 
@@ -147,9 +148,14 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
+    def get_youtube_api_key(self):
+        conf = ConfigParser()
+        conf.read('config.ini')
+        return conf.get('youtube','api_key')
+
     @gen.coroutine
     def get(self, channel):
-        key = "AIzaSyAodcZ0lXZNGb8a08i92jrDxSVlAAIH5y4"
+        key = self.get_youtube_api_key()
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
@@ -229,7 +235,7 @@ class ChannelHandler(web.RequestHandler):
                 try:
                     chan=snippet['channelTitle']
                 except KeyError:
-                    snippet['channelTitle'] = "Not Found"
+                    snippet['channelTitle'] = snippet['channelId']  #"[YT Title Not Found]"
                     logging.info("Channel title not found")
                 
                 logging.info(
@@ -275,7 +281,7 @@ class ChannelHandler(web.RequestHandler):
                 try:
                     chan=snippet['channelTitle']
                 except KeyError:
-                    snippet['channelTitle'] = "Not Found"
+                    snippet['channelTitle'] = "[YT Title Not Found]"
                     logging.info("Channel title not found")
                 
                 logging.debug(
