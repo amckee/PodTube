@@ -226,6 +226,12 @@ class ChannelHandler(web.RequestHandler):
                     else:
                         snippet = item['snippet']
                         break
+                try:
+                    chan=snippet['channelTitle']
+                except KeyError:
+                    snippet['channelTitle'] = "Not Found"
+                    logging.info("Channel title not found")
+                
                 logging.info(
                     'Channel: %s (%s)',
                     channel[0],
@@ -265,6 +271,13 @@ class ChannelHandler(web.RequestHandler):
                 if 'private' in snippet['title'].lower():
                     continue
                 current_video = item['contentDetails']['upload']['videoId']
+                
+                try:
+                    chan=snippet['channelTitle']
+                except KeyError:
+                    snippet['channelTitle'] = "Not Found"
+                    logging.info("Channel title not found")
+                
                 logging.debug(
                     'ChannelVideo: %s (%s)',
                     current_video,
