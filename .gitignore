@@ -132,3 +132,4 @@ audio/
 .venv
 
 *.lock
+config.ini
