@@ -202,7 +202,6 @@ class ChannelHandler(web.RequestHandler):
                     'maxResults': 50,
                     'channelId': channel[0],
                     'key': key,
-                    'channelTitle': '',
                     'pageToken': next_page
                 }
                 request = requests.get(
@@ -236,7 +235,7 @@ class ChannelHandler(web.RequestHandler):
                 try:
                     chan=snippet['channelTitle']
                 except KeyError:
-                    snippet['channelTitle'] = "[YT Title Not Found]"
+                    snippet['channelTitle'] = snippet['channelId']  #"[YT Title Not Found]"
                     logging.info("Channel title not found")
                 
                 logging.info(
