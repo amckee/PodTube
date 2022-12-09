@@ -6,7 +6,7 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-__version__ = 'v2022.03.23.1'
+__version__ = 'v2022.12.09.2'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -139,7 +139,12 @@ class UserHandler(web.RequestHandler):
         feed.load_extension('podcast')
 
         ## Get User/Channel Info
-        feed.title( bs.find("h1", "listing-header--title").text )
+        try:
+            feed.title( bs.find("div", "listing-header--title").find("h1").text )
+        except:
+            logging.info("Failed to pull channel title. Using provided channel instead")
+            feed.title( channel )
+
         feed.image( bs.find("img", "listing-header--thumb")['src'] )
         feed.description( "--" )
         feed.id( user )
