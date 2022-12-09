@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 import youtube, bitchute, rumble, dailymotion
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2022.11.26.4'
+__version__ = 'v2022.12.09.2'
 
 def make_app(key="test"):
     webapp = web.Application([
