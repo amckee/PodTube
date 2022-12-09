@@ -40,7 +40,12 @@ class ChannelHandler(web.RequestHandler):
         feed.load_extension('podcast')
 
         ## Get Channel Info
-        feed.title( bs.find("h1", "listing-header--title").text )
+        try:
+            feed.title( bs.find("div", "listing-header--title").find("h1").text )
+        except:
+            logging.info("Failed to pull channel title. Using provided channel instead")
+            feed.title( channel )
+
         try:
             thumb = bs.find("img", "listing-header--thumb")['src']
             if thumb is not None:
@@ -71,7 +76,7 @@ class ChannelHandler(web.RequestHandler):
             try:
                 vidduration = video.find('span', 'video-item--duration')['data-value']
             except TypeError:
-                logging.warning("Failed to get duration; likely a live video. Skipping this entry...")
+                logging.warning("Failed to get duration; likely a live video, skipping")
                 continue
 
             item = feed.add_entry()
