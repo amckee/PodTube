@@ -13,9 +13,10 @@ from tornado import web
 
 ## setup timezone object, needed for pubdate
 import datetime, pytz
-tz = pytz.utc
+from pytz import timezone
+tz = timezone('US/Central')
 
-__version__ = 'v2022.02.02.1'
+__version__ = 'v2022.12.20.1'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -59,7 +60,10 @@ class ChannelHandler(web.RequestHandler):
         feed.language('en')
 
         ## loop through videos build feed item dict
-        for vid in bs.find_all("div", "channel-videos-container"):
+        vids = bs.find_all("div", "channel-videos-container")
+        vidcount = len( vids )
+        itemcounter = 0
+        for vid in vids:
             item = feed.add_entry()
             vidtitle = vid.find("div", "channel-videos-title").text
             item.title( vidtitle )
@@ -77,7 +81,10 @@ class ChannelHandler(web.RequestHandler):
                 href = f'http://{self.request.host}/bitchute{link}',
                 title = vid.find("div", "channel-videos-title").text
             )
-            date = datetime.datetime.strptime( vid.find("div", "channel-videos-details").text.strip(), "%b %d, %Y" ).astimezone( tz )
+
+            viddate = " ".join([vid.find("div", "channel-videos-details").text.strip(), str(itemcounter)])
+
+            date = datetime.datetime.strptime(  viddate, "%b %d, %Y %M" ).astimezone( tz )
             item.pubDate( date )
             item.enclosure(
                 url = f'http://{self.request.host}/bitchute{link}',
@@ -87,6 +94,7 @@ class ChannelHandler(web.RequestHandler):
             # span.video-duration
             item.podcast.itunes_duration( vid.find("span", "video-duration").text )
 
+            itemcounter += 1
         return feed.rss_str( pretty=True )
 
 def get_bitchute_url(video):
