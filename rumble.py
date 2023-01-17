@@ -187,6 +187,91 @@ class UserHandler(web.RequestHandler):
             )
         return feed.rss_str( pretty=True )
 
+class CategoryHandler(web.RequestHandler):
+    def head(self, category):
+        self.set_header('Content-type', 'application/rss+xml')
+        self.set_header('Accept-Ranges', 'bytes')
+    
+    def get(self, category):
+        logging.info( "Got category: %s" % category )
+
+        url = "https://rumble.com/category/%s" % category
+        logging.info( "Handling Rumble URL: %s" % category )
+
+        self.set_header('Content-type', 'application/rss+xml')
+        feed = self.generate_rss( category )
+        self.write( feed )
+        self.finish()
+    
+    def get_html(self, category):
+        url = "https://rumble.com/category/%s" % category
+        logging.info("Rumble URL: %s" % url)
+        r = requests.get( url )
+        bs = BeautifulSoup( r.text, 'lxml' )
+        html = str( bs.find("main") )
+        return html
+    
+    def generate_rss( self, category ):
+        logging.info( "Category: %s" % category )
+        bs = BeautifulSoup( self.get_html( category ), 'lxml' )
+
+        feed = FeedGenerator()
+        feed.load_extension('podcast')
+
+        try:
+            feed.title( bs.find("div", "listing-header--title").text )
+        except:
+            logging.info( "Failed to pull category name" )
+            feed.title( category )
+        
+        feed.description( "New videos from Rumble's %s category page" % category )
+        feed.id( category )
+        feed.link(
+            href = f'https://rumble.com/category/%s' % category,
+            rel = 'self'
+        )
+        feed.language('en')
+
+        ## Assemble RSS items list
+        videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
+        for video in videos:
+            ## Check for and skip live videos and upcomming videos
+            if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):  ##['data-value'] == "LIVE":
+                continue
+
+            item = feed.add_entry()
+            item.title( video.find("h3", "video-item--title").text )
+            item.description( video.find("div", "ellipsis-1").text )
+            
+            lnk = video.find("a", "video-item--a")
+            vid = lnk['href']
+            link = f'http://{self.request.host}/rumble/video' + vid
+            icon = video.find( "img", "video-item--img" )['src']
+            item.podcast.itunes_image( icon )
+            item.link(
+                href = link,
+                title = item.title()
+            )
+
+            dateformat = "%Y-%m-%d %H:%M:%S"
+            viddatetime = video.find("time", "video-item--meta")['datetime']
+            viddate = viddatetime.split('T')[0]
+            vidtime = viddatetime.split('T')[1]
+            vidtime = vidtime.split('-')[0]
+            vidpubdate = viddate + " " + vidtime
+            date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
+            item.pubDate( date )
+
+            item.podcast.itunes_duration( video.find('span', 'video-item--duration')['data-value'] )
+
+            item.enclosure(
+                url = link,
+                type = "video/mp4"
+            )
+        return feed.rss_str( pretty=True )
+
+
+
 def get_rumble_url( video ):
     url = "https://rumble.com/%s" % video
     logging.info( "Getting URL: %s" % url )

@@ -19,6 +19,7 @@ def make_app(key="test"):
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
+        (r'/rumble/category/(.*)', rumble.CategoryHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/dailymotion/channel/(.*)', dailymotion.ChannelHandler),
