@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-import glob
-import logging
-import os
+import glob, logging, os
 from argparse import ArgumentParser
 
 #import misaka
@@ -21,6 +19,7 @@ def make_app(key="test"):
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
+        (r'/rumble/category/(.*)', rumble.CategoryHandler),
         (r'/bitchute/channel/(.*)', bitchute.ChannelHandler),
         (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/dailymotion/channel/(.*)', dailymotion.ChannelHandler),
