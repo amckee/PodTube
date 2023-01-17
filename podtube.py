@@ -4,7 +4,7 @@ import glob, logging, os
 from argparse import ArgumentParser
 
 #import misaka
-import youtube, bitchute, rumble, dailymotion
+import youtube, bitchute, rumble, dailymotion, bannedvideo
 from tornado import gen, httputil, ioloop, iostream, process, web
 
 __version__ = 'v2023.01.17.2'
@@ -24,6 +24,8 @@ def make_app(key="test"):
         (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/dailymotion/channel/(.*)', dailymotion.ChannelHandler),
         (r'/dailymotion/video/(.*)', dailymotion.VideoHandler),
+        (r'/bannedvideo/channel/(.*)', bannedvideo.ChannelHandler),
+        (r'/bannedvideo/video/(.*)', bannedvideo.VideoHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
