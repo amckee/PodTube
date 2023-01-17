@@ -6,7 +6,7 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-__version__ = 'v2022.12.09.2'
+__version__ = 'v2023.01.17.2'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -219,7 +219,7 @@ class CategoryHandler(web.RequestHandler):
         feed.load_extension('podcast')
 
         try:
-            feed.title( bs.find("div", "listing-header--title").text )
+            feed.title( "Rumble: %s" % bs.find("div", "listing-header--title").text )
         except:
             logging.info( "Failed to pull category name" )
             feed.title( category )
