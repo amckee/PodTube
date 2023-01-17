@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-import glob
-import logging
-import os
+import glob, logging, os
 from argparse import ArgumentParser
 
 #import misaka

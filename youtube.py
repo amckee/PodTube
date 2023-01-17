@@ -1,15 +1,8 @@
-#pylint: disable=E1101
-import datetime
-import logging
-import os
-import psutil
-import requests
-import misaka
-import glob
+import datetime, logging, os, psutil
+import misaka, glob, requests
+
 from configparser import ConfigParser
-
 from pathlib import Path
-
 from feedgen.feed import FeedGenerator
 from pytube import YouTube
 from tornado import gen, httputil, ioloop, iostream, process, web
