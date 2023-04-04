@@ -293,7 +293,17 @@ def get_rumble_url( video ):
     el = bs.find("script").string
     import re
     lnk = re.search( "https.*\.mp4", bs.find( "script" ).string )
-    vidurl = lnk.group().split('"')[0].replace('\\', '')
+    for section in lnk.string.split('":"'):
+        mtch = re.match( r'^(https.+\.mp4).+$', section )
+        if mtch is not None:
+            lnk = mtch.group().split('"')[0].replace('\\', '')
+            break
+
+    if type(lnk) is str:
+        vidurl = lnk
+    else:
+        vidurl = lnk.group().split('"')[0].replace('\\', '')
+
     logging.info( "Finally got the video URL: %s" % vidurl )
     return vidurl
 
