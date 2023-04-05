@@ -294,7 +294,7 @@ def get_rumble_url( video ):
     for section in lnk.string.split('":"'):
         mtch = re.match( r'^(https.+\.mp4).+$', section )
         if mtch is not None:
-            lnk = mtch.group().split('"')[-1].replace('\\', '')
+            lnk = mtch.group().split('"')[0].replace('\\', '')
             break
 
     if type(lnk) is str:
