@@ -270,8 +270,6 @@ class CategoryHandler(web.RequestHandler):
             )
         return feed.rss_str( pretty=True )
 
-
-
 def get_rumble_url( video ):
     url = "https://rumble.com/%s" % video
     logging.info( "Getting URL: %s" % url )
@@ -292,11 +290,11 @@ def get_rumble_url( video ):
     bs = BeautifulSoup( r.text, 'lxml' )
     el = bs.find("script").string
     import re
-    lnk = re.search( "https.*\.mp4", bs.find( "script" ).string )
+    lnk = re.search( r"https.*\.mp4", bs.find( "script" ).string )
     for section in lnk.string.split('":"'):
         mtch = re.match( r'^(https.+\.mp4).+$', section )
         if mtch is not None:
-            lnk = mtch.group().split('"')[0].replace('\\', '')
+            lnk = mtch.group().split('"')[-1].replace('\\', '')
             break
 
     if type(lnk) is str:
