@@ -13,3 +13,4 @@ jobs:
       - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}

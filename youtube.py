@@ -8,13 +8,13 @@ from pytube import YouTube
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-key = None
+key = os.getenv("YT_API_KEY")
 
 video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2023.04.07.01'
+__version__ = 'v2023.04.07.04'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
@@ -141,14 +141,9 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
-    def get_youtube_api_key(self):
-        conf = ConfigParser()
-        conf.read('config.ini')
-        return conf.get('youtube','api_key')
-
     @gen.coroutine
     def get(self, channel):
-        key = self.get_youtube_api_key()
+        key = os.getenv("YT_API_KEY")
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
