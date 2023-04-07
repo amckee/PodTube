@@ -25,6 +25,7 @@ def make_app(key="test"):
         (r'/bitchute/video/(.*)', bitchute.VideoHandler),
         (r'/dailymotion/channel/(.*)', dailymotion.ChannelHandler),
         (r'/dailymotion/video/(.*)', dailymotion.VideoHandler),
+        (r'/config.ini', web.RedirectHandler, {'url': '/'}),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
