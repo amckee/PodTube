@@ -191,7 +191,7 @@ class CategoryHandler(web.RequestHandler):
     def head(self, category):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
-    
+
     def get(self, category):
         logging.info( "Got category: %s" % category )
 
@@ -202,7 +202,7 @@ class CategoryHandler(web.RequestHandler):
         feed = self.generate_rss( category )
         self.write( feed )
         self.finish()
-    
+
     def get_html(self, category):
         url = "https://rumble.com/category/%s" % category
         logging.info("Rumble URL: %s" % url)
@@ -210,7 +210,7 @@ class CategoryHandler(web.RequestHandler):
         bs = BeautifulSoup( r.text, 'lxml' )
         html = str( bs.find("main") )
         return html
-    
+
     def generate_rss( self, category ):
         logging.info( "Category: %s" % category )
         bs = BeautifulSoup( self.get_html( category ), 'lxml' )

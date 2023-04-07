@@ -14,7 +14,7 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2022.11.26.4'
+__version__ = 'v2023.04.07.01'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
@@ -604,12 +604,47 @@ class AudioHandler(web.RequestHandler):
             'Audio: User quit during transcoding (%s)',
             self.request.remote_ip)
 
+class UserHandler(web.RequestHandler):
+    def get_canonical(self, url):
+        logging.info("Getting canonical for %s" % url)
+        req = requests.get( url )
+        if req.status_code == 200:
+            from bs4 import BeautifulSoup
+            bs = BeautifulSoup( req.text, 'lxml' )
+            can_url = None
+
+            # loop through all links and find the canonical url
+            for link in bs.find_all("link"):
+                try:
+                    if link['rel'][0] == 'canonical':
+                        can_url = link['href']
+                        break
+                except:
+                    # not all links have a rel
+                    pass
+            return can_url
+        return None
+
+    def get(self, username):
+        logging.info('Handling Youtube channel by name: %s' % username)
+        yt_url = "https://youtube.com/@" + username
+        canon_url = self.get_canonical( yt_url )
+
+        if canon_url is None:
+            logging.error("Failed to get canonical URL of %s" % username)
+        else:
+            selfurl = f'http://{self.request.host}/' + canon_url.replace('https://', '').replace('www.', '').replace('.com', '')
+            self.redirect( selfurl )
+        return None
+
 class FileHandler(web.RequestHandler):
     def get(self):
         logging.info('ReadMe (%s)', self.request.remote_ip)
         self.write('<html><head><title>PodTube (v')
         self.write(__version__)
-        self.write(')</title><link rel="shortcut icon" href="favicon.ico"><link rel="stylesheet" type="text/css" href="markdown.css"></head><body>')
+        self.write(')</title><link rel="shortcut icon" href="favicon.ico">')
+        self.write('<link rel="stylesheet" type="text/css" href="markdown.css">')
+        self.write('</head><body>')
         with open('README.md') as text:
             self.write(
                 misaka.html(

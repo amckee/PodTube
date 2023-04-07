@@ -1,4 +1,4 @@
-# [PodTube](https://github.com/aquacash5/PodTube) (v2023.01.17.2)
+# [PodTube](https://github.com/aquacash5/PodTube) (v2023.04.07.01)
 
 This is an extended functionality fork of a python application for converting Youtube, Rumble and Bitchute channels into podcast-friendly RSS feeds.
 
@@ -11,6 +11,8 @@ https://yourserver.com/youtube/channel/youtube-channel-id
   [youtube]
   api_key=<key goes here, obviously>
   ```
+YouTube channel by @<username> (should automatically grab canonical URL):
+https://yourserver.com/youtube/user/@username
 
 To use Bitchute channels:
 http://yourserver.com/bitchute/channel/bitchute-channel-name

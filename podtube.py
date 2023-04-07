@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 import youtube, bitchute, rumble, dailymotion
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2023.04.06.01'
+__version__ = 'v2023.04.07.01'
 
 def make_app(key="test"):
     webapp = web.Application([
@@ -15,6 +15,7 @@ def make_app(key="test"):
         (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
+        (r'/youtube/user/@(.*)', youtube.UserHandler),
         (r'/youtube/', youtube.FileHandler),
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
