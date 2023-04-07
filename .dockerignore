@@ -1,0 +1,9 @@
+config.ini
+__pycache__
+.github
+.vscode
+disabled
+.dockerignore
+.gitignore
+fly.toml
+podtube.log

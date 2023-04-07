@@ -26,6 +26,8 @@ def make_app(key="test"):
         (r'/dailymotion/channel/(.*)', dailymotion.ChannelHandler),
         (r'/dailymotion/video/(.*)', dailymotion.VideoHandler),
         (r'/config.ini', web.RedirectHandler, {'url': '/'}),
+        (r'/README.md', web.RedirectHandler, {'url': '/'}),
+        (r'/Dockerfile', web.RedirectHandler, {'url': '/'}),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
