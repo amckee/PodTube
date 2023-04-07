@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--log-file',
         type=str,
-        default='podtube.log',
+        default='/dev/stdout',
         metavar='FILE',
         help='Location and name of log file'
     )
