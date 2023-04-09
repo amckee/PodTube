@@ -3,11 +3,28 @@
 import glob, logging, os
 from argparse import ArgumentParser
 
-#import misaka
+import misaka
 import youtube, bitchute, rumble, dailymotion
 from tornado import gen, httputil, ioloop, iostream, process, web
 
 __version__ = 'v2023.04.12.05'
+
+class FileHandler(web.RequestHandler):
+    def get(self):
+        logging.info('ReadMe (%s)', self.request.remote_ip)
+        self.write('<html><head><title>PodTube (v')
+        self.write(__version__)
+        self.write(')</title><link rel="shortcut icon" href="favicon.ico">')
+        self.write('<link rel="stylesheet" type="text/css" href="markdown.css">')
+        self.write('</head><body>')
+        with open('README.md') as text:
+            self.write(
+                misaka.html(
+                    text.read(),
+                    extensions=('tables', 'fenced-code')
+                )
+            )
+        self.write('</body></html>')
 
 def make_app(key="test"):
     webapp = web.Application([
@@ -24,7 +41,6 @@ def make_app(key="test"):
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
         (r'/youtube/user/@(.*)', youtube.UserHandler, {'channel_handler_path': '/youtube/channel/'}),
-        (r'/youtube/', youtube.FileHandler),
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
@@ -36,6 +52,7 @@ def make_app(key="test"):
         (r'/config.ini', web.RedirectHandler, {'url': '/'}),
         (r'/README.md', web.RedirectHandler, {'url': '/'}),
         (r'/Dockerfile', web.RedirectHandler, {'url': '/'}),
+        (r'/', FileHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp

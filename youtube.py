@@ -738,20 +738,3 @@ class UserHandler(web.RequestHandler):
             logging.info('Redirect to %s' % selfurl)
             self.redirect( selfurl, permanent = True )
         return None
-
-class FileHandler(web.RequestHandler):
-    def get(self):
-        logging.info('ReadMe (%s)', self.request.remote_ip)
-        self.write('<html><head><title>PodTube (v')
-        self.write(__version__)
-        self.write(')</title><link rel="shortcut icon" href="favicon.ico">')
-        self.write('<link rel="stylesheet" type="text/css" href="markdown.css">')
-        self.write('</head><body>')
-        with open('README.md') as text:
-            self.write(
-                misaka.html(
-                    text.read(),
-                    extensions=('tables', 'fenced-code')
-                )
-            )
-        self.write('</body></html>')
