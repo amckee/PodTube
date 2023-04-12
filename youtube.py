@@ -153,9 +153,6 @@ def get_youtube_url(video):
     logging.info( "vid: %s" % vid )
     return link['url']
 
-def set_key( key=None ):
-    key = key
-
 class ChannelHandler(web.RequestHandler):
     def initialize(self):
         init()
