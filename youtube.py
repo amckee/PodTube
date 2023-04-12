@@ -8,7 +8,7 @@ from pytube import YouTube
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-key = os.getenv("YT_API_KEY")
+key = None
 
 video_links = {}
 playlist_feed = {}
@@ -18,6 +18,27 @@ __version__ = 'v2023.04.07.04'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
+
+def get_youtube_api_key():
+    yt_key = os.getenv("YT_API_KEY")
+    if yt_key is not None:
+        logging.debug("Use YT KEY from EnvVar")
+    else:
+        conf = ConfigParser()
+        conf.read('config.ini')
+        yt_key = conf.get('youtube','api_key')
+        logging.debug("Use YT KEY from config")
+    return yt_key
+
+def init():
+    global key
+    if key is not None:
+        return
+    key = get_youtube_api_key()
+
+def set_key( new_key=None ):
+    global key
+    key = new_key
 
 def cleanup():
     # Globals
@@ -136,6 +157,9 @@ def set_key( key=None ):
     key = key
 
 class ChannelHandler(web.RequestHandler):
+    def initialize(self):
+        init()
+
     @gen.coroutine
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
@@ -143,7 +167,7 @@ class ChannelHandler(web.RequestHandler):
 
     @gen.coroutine
     def get(self, channel):
-        key = os.getenv("YT_API_KEY")
+        global key
         key2 = os.getenv("YT_API2")
         logging.info("yt api key: %s" % key)
         logging.info("yt other api: %s" % key2)
@@ -326,6 +350,9 @@ class ChannelHandler(web.RequestHandler):
             }
 
 class PlaylistHandler(web.RequestHandler):
+    def initialize(self):
+        init()
+
     @gen.coroutine
     def head(self, playlist):
         self.set_header('Content-type', 'application/rss+xml')
@@ -486,6 +513,9 @@ class VideoHandler(web.RequestHandler):
         self.redirect(get_youtube_url(video))
 
 class AudioHandler(web.RequestHandler):
+    def initialize(self):
+        init()
+
     @gen.coroutine
     def head(self, channel):
         self.set_header('Accept-Ranges', 'bytes')
@@ -604,6 +634,9 @@ class AudioHandler(web.RequestHandler):
             self.request.remote_ip)
 
 class UserHandler(web.RequestHandler):
+    def initialize(self):
+        init()
+
     def get_canonical(self, url):
         logging.info("Getting canonical for %s" % url)
         req = requests.get( url )
