@@ -282,6 +282,8 @@ def get_rumble_url( video, bitrate=None ):
     vidurl = dat[0]['embedUrl']
     logging.info( "Found embedded URL: %s" % vidurl )
 
+    embedVidID = vidurl.rstrip('/').split('/')[-1]
+
     ## second, we get the url to the mp4 file
     ## tricky stuff that will likely break a lot
     ## but we need to parse out values within a javascript function
@@ -292,7 +294,7 @@ def get_rumble_url( video, bitrate=None ):
 
     import re
     vidurl = None
-    vids = json.loads( re.search( r'"ua":\{"mp4":.+\}\}\},"webm', el ).group(0).replace(r'"ua":{"mp4":', '[').replace(r',"webm', ']') )
+    vids = json.loads( re.search( r'"ua":\{"mp4":.+\}\}\},"time', el ).group(0).replace(r'"ua":{"mp4":', '[').replace(r',"time', '').replace('}}}', '}}}]') )
 
     if bitrate is not None:
         # find the requested bitrate video
