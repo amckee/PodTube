@@ -272,7 +272,7 @@ class ChannelHandler(web.RequestHandler):
                 fg.podcast.itunes_author(snippet['channelTitle'])
                 fg.image(snippet['thumbnails'][icon]['url'])
                 fg.link(
-                    href=f'http://youtube.com/channel/%s' % channel[0],
+                    href=f'https://www.youtube.com/channel/%s' % channel[0],
                     rel='self'
                 )
                 fg.language('en-US')
@@ -326,7 +326,7 @@ class ChannelHandler(web.RequestHandler):
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
                 fe.link(
-                    href=f'http://www.youtube.com/watch?v={current_video}',
+                    href=f'https://www.youtube.com/watch?v={current_video}',
                     title=snippet['title']
                 )
                 fe.podcast.itunes_summary(snippet['description'])
@@ -485,7 +485,7 @@ class PlaylistHandler(web.RequestHandler):
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
                 fe.link(
-                    href=f'http://www.youtube.com/watch?v={current_video}',
+                    href=f'https://www.youtube.com/watch?v={current_video}',
                     title=snippet['title']
                 )
                 fe.podcast.itunes_summary(snippet['description'])
