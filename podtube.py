@@ -15,7 +15,7 @@ def make_app(key="test"):
         (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
-        (r'/youtube/user/@(.*)', youtube.UserHandler),
+        (r'/youtube/user/@(.*)', youtube.UserHandler, {'channel_handler_path': '/youtube/channel/'}),
         (r'/youtube/', youtube.FileHandler),
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),

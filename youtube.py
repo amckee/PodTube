@@ -634,8 +634,9 @@ class AudioHandler(web.RequestHandler):
             self.request.remote_ip)
 
 class UserHandler(web.RequestHandler):
-    def initialize(self):
+    def initialize(self, channel_handler_path: str):
         init()
+        self.channel_handler_path = channel_handler_path
 
     def get_canonical(self, url):
         logging.info("Getting canonical for %s" % url)
@@ -657,15 +658,32 @@ class UserHandler(web.RequestHandler):
             return can_url
         return None
 
+    def get_channel_token(self, username: str) -> str:
+        yt_url = f"https://www.youtube.com/@{username}/about"
+        canon_url = self.get_canonical( yt_url )
+        logging.debug('Canonical url: %s' % canon_url)
+        if canon_url is None:
+            return None
+        token_index = canon_url.rfind("/") + 1
+        channel_token = canon_url[token_index:]
+        return channel_token
+
     def get(self, username):
         logging.info('Handling Youtube channel by name: %s' % username)
-        yt_url = "https://youtube.com/@" + username
-        canon_url = self.get_canonical( yt_url )
+        append = None
+        append_index = username.find('/')
+        if append_index > -1:
+            append = username[append_index:]
+            username = username[:append_index]
+        channel_token = self.get_channel_token(username)
 
-        if canon_url is None:
+        if channel_token is None:
             logging.error("Failed to get canonical URL of %s" % username)
         else:
-            selfurl = f'http://{self.request.host}/' + canon_url.replace('https://', '').replace('www.', '').replace('.com', '')
+            selfurl = self.channel_handler_path + channel_token
+            if append is not None:
+                selfurl += append
+            logging.debug('Redirect to %s' % selfurl)
             self.redirect( selfurl )
         return None
 
