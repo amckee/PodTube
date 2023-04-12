@@ -294,7 +294,17 @@ def get_rumble_url( video, bitrate=None ):
 
     import re
     vidurl = None
-    vids = json.loads( re.search( r'"ua":\{"mp4":.+\}\}\},"time', el ).group(0).replace(r'"ua":{"mp4":', '[').replace(r',"time', '').replace('}}}', '}}}]') )
+    preparsedvids = None
+
+    ## need multiple regexes to find usable json
+
+    # regex #1
+    regexSearch = re.search( r'"ua":\{"mp4":.+\}\}\}', el )
+    if regexSearch is not None:
+        logging.info("First json regex worked")
+        vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').replace(r',"time', '').replace('}}}}', '}}}]') )
+    else:
+        logging.info( "Failed first json regex parse. Trying the second" )
 
     if bitrate is not None:
         # find the requested bitrate video
@@ -304,9 +314,9 @@ def get_rumble_url( video, bitrate=None ):
                 vidurl = vid['url']
                 break
     else:
-        # find the default bitrate video
+        # find a default bitrate video
         for vid in vids[0]:
-            if vid == "240":
+            if vid == "240" or vid == "360":
                 vidurl = vids[0][vid]['url']
                 break
 
