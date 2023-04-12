@@ -141,12 +141,20 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
+    def get_youtube_api_key(self):
+        conf = ConfigParser()
+        conf.read('config.ini')
+        return conf.get('youtube','api_key')
+
     @gen.coroutine
     def get(self, channel):
         key = os.getenv("YT_API_KEY")
-        key2 = os.getenv("YT_API2")
-        logging.info("yt api key: %s" % key)
-        logging.info("yt other api: %s" % key2)
+        if key is not None:
+            logging.info("Got YT API key from ENV: %s" % key)
+        else:
+            key = self.get_youtube_api_key(self)
+            logging.info("Got YT API key from config file: %s" % key)
+
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
