@@ -144,6 +144,9 @@ class ChannelHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, channel):
         key = os.getenv("YT_API_KEY")
+        key2 = os.getenv("YT_API2")
+        logging.info("yt api key: %s" % key)
+        logging.info("yt other api: %s" % key2)
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
