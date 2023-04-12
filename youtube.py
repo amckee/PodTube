@@ -333,6 +333,7 @@ class PlaylistHandler(web.RequestHandler):
 
     @gen.coroutine
     def get(self, playlist):
+        global key
         playlist = playlist.split('/')
         if len(playlist) < 2:
             playlist.append('video')
@@ -378,7 +379,7 @@ class PlaylistHandler(web.RequestHandler):
             snippet['title']
         )
         fg.title(snippet['title'])
-        fg.id('http://' + self.request.host + 'youtube/' + self.request.uri)
+        fg.id('http://' + self.request.host + '/youtube/' + self.request.uri)
         fg.description(snippet['description'] or ' ')
         fg.author(
             name='Podtube',
@@ -388,7 +389,7 @@ class PlaylistHandler(web.RequestHandler):
         fg.podcast.itunes_author(snippet['channelTitle'])
         fg.image(snippet['thumbnails'][icon]['url'])
         fg.link(
-            href=f'http://youtube.com/playlist/?list={playlist}',
+            href=f'https://www.youtube.com/playlist/?list={playlist}',
             rel='self'
         )
         fg.language('en-US')
@@ -444,15 +445,15 @@ class PlaylistHandler(web.RequestHandler):
                 fe.updated(snippet['publishedAt'])
                 if playlist[1] == 'video':
                     fe.enclosure(
-                        url=f'http://{self.request.host}/video/{current_video}',
+                        url=f'http://{self.request.host}/youtube/video/{current_video}',
                         type="video/mp4"
                     )
                 elif playlist[1] == 'audio':
                     fe.enclosure(
-                        url=f'http://{self.request.host}/audio/{current_video}',
+                        url=f'http://{self.request.host}/youtube/audio/{current_video}',
                         type="audio/mpeg"
                     )
-                logging.info( "Final URL created for enclosure: %s" % f'http://{self.request.host}/video/{current_video}' )
+                logging.info( "Final URL created for enclosure: %s" % f'http://{self.request.host}/youtube/video/{current_video}' )
                 fe.author(name=snippet['channelTitle'])
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
