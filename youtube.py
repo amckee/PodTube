@@ -634,6 +634,8 @@ class AudioHandler(web.RequestHandler):
             self.request.remote_ip)
 
 class UserHandler(web.RequestHandler):
+    channels_cache = {}
+
     def initialize(self, channel_handler_path: str):
         init()
         self.channel_handler_path = channel_handler_path
@@ -659,6 +661,8 @@ class UserHandler(web.RequestHandler):
         return None
 
     def get_channel_token(self, username: str) -> str:
+        if username in UserHandler.channels_cache:
+            return UserHandler.channels_cache[username]
         yt_url = f"https://www.youtube.com/@{username}/about"
         canon_url = self.get_canonical( yt_url )
         logging.debug('Canonical url: %s' % canon_url)
@@ -666,6 +670,7 @@ class UserHandler(web.RequestHandler):
             return None
         token_index = canon_url.rfind("/") + 1
         channel_token = canon_url[token_index:]
+        UserHandler.channels_cache[username] = channel_token
         return channel_token
 
     def get(self, username):
