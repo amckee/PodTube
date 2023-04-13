@@ -162,11 +162,6 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
-    def get_youtube_api_key(self):
-        conf = ConfigParser()
-        conf.read('config.ini')
-        return conf.get('youtube','api_key')
-
     @gen.coroutine
     def get(self, channel):
         global key
