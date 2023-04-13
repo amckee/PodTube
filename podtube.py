@@ -77,7 +77,7 @@ if __name__ == '__main__':
     logging.info(f'Started listening on {args.port}')
     ioloop.PeriodicCallback(
         callback=youtube.cleanup,
-        callback_time=1000
+        callback_time=600000
     ).start()
     ioloop.PeriodicCallback(
         callback=youtube.convert_videos,
