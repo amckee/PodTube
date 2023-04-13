@@ -6,7 +6,7 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-__version__ = 'v2023.04.05.3'
+__version__ = 'v2023.04.12.05'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
