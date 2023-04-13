@@ -1,4 +1,4 @@
-import datetime, logging, os, psutil
+import datetime, logging, os, psutil, time
 import misaka, glob, requests
 
 from configparser import ConfigParser
@@ -86,19 +86,27 @@ def cleanup():
             channel_feed_length
         )
     # Space Check
-    size = psutil.disk_usage('./audio')
-    if size.free < 536870912:
-        for f in sorted(glob.glob('./audio/*mp3'), key=lambda a_file: os.path.getctime(a_file)):
+    expired_time = time.time() - 259200 # 3 days in seconds
+    size_clean = False
+    for f in sorted(glob.glob('./audio/*mp3'), key=lambda a_file: os.path.getctime(a_file)):
+        size = psutil.disk_usage('./audio')
+        ctime = os.path.getctime(f)
+        size_clean = size_clean or size.free < 536870912
+        time_clean = ctime <= expired_time
+        if time_clean or size_clean:
             os.remove(f)
             logging.info('Deleted %s', f)
-            size = psutil.disk_usage('./audio')
-            if size.free > 16106127360:
-                return
+            if not time_clean and size_clean and size.free > 16106127360:
+                break
+        else:
+            break
 
 @gen.coroutine
 def convert_videos():
     global conversion_queue
     global converting_lock
+    if len(conversion_queue) == 0:
+        return
     try:
         remaining = [
             key
