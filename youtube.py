@@ -14,7 +14,7 @@ video_links = {}
 playlist_feed = {}
 channel_feed = {}
 
-__version__ = 'v2023.04.07.04'
+__version__ = 'v2023.04.12.05'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
@@ -22,12 +22,12 @@ converting_lock = Semaphore(2)
 def get_youtube_api_key():
     yt_key = os.getenv("YT_API_KEY")
     if yt_key is not None:
-        logging.debug("Use YT KEY from EnvVar")
+        logging.info("Got YT API key from ENV: %s" % yt_key)
     else:
         conf = ConfigParser()
         conf.read('config.ini')
         yt_key = conf.get('youtube','api_key')
-        logging.debug("Use YT KEY from config")
+        logging.info("Got YT API key from config file: %s" % yt_key)
     return yt_key
 
 def init():
@@ -162,12 +162,14 @@ class ChannelHandler(web.RequestHandler):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
+    def get_youtube_api_key(self):
+        conf = ConfigParser()
+        conf.read('config.ini')
+        return conf.get('youtube','api_key')
+
     @gen.coroutine
     def get(self, channel):
         global key
-        key2 = os.getenv("YT_API2")
-        logging.info("yt api key: %s" % key)
-        logging.info("yt other api: %s" % key2)
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')

@@ -6,7 +6,7 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-__version__ = 'v2023.04.05.3'
+__version__ = 'v2023.04.12.05'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -282,6 +282,8 @@ def get_rumble_url( video, bitrate=None ):
     vidurl = dat[0]['embedUrl']
     logging.info( "Found embedded URL: %s" % vidurl )
 
+    embedVidID = vidurl.rstrip('/').split('/')[-1]
+
     ## second, we get the url to the mp4 file
     ## tricky stuff that will likely break a lot
     ## but we need to parse out values within a javascript function
@@ -292,7 +294,21 @@ def get_rumble_url( video, bitrate=None ):
 
     import re
     vidurl = None
-    vids = json.loads( re.search( r'"ua":\{"mp4":.+\}\}\},"webm', el ).group(0).replace(r'"ua":{"mp4":', '[').replace(r',"webm', ']') )
+    preparsedvids = None
+
+    ## need multiple regexes to find usable json
+
+    # regex #1
+    regexSearch = re.search( r'"ua":\{"mp4":.+\}\}\},', el )
+    if regexSearch is not None:
+        try:
+            vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}},', '}}}]') )
+            logging.info("First json regex worked")
+        except:
+            logging.info("Trying second json regex")
+            vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}}},', '}}}]') )
+    else:
+        logging.info( "Failed first json regex parse. Trying the second" )
 
     if bitrate is not None:
         # find the requested bitrate video
@@ -302,11 +318,20 @@ def get_rumble_url( video, bitrate=None ):
                 vidurl = vid['url']
                 break
     else:
-        # find the default bitrate video
-        for vid in vids[0]:
-            if vid == "240":
-                vidurl = vids[0][vid]['url']
+        # find a default bitrate video. 240p first, 360p second, anything at all third
+        for res in ('240', '360'):
+            vid = vids[0].get(res)
+            if vid is not None:
+                logging.info("Grabbing %sp video" % res)
+                vidurl = vid['url']
                 break
+        
+        if vidurl is None:
+            for vid in vids[0]:
+                if vids[0][vid]['url'] is not None:
+                    logging.info("Grabbing %sp format" % vid)
+                    vidurl = vids[0][vid]['url']
+                    break
 
     if vidurl is None:
         logging.info( "Failed to get video: %s" % video)
