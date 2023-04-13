@@ -319,12 +319,19 @@ def get_rumble_url( video, bitrate=None ):
                 vidurl = vid['url']
                 break
     else:
-        # find a default bitrate video
-        for vid in vids[0]:
-            if vid == "240" or vid == "360":
-                logging.info("Grabbing %sp format" % vid)
-                vidurl = vids[0][vid]['url']
+        # find a default bitrate video. 240p first, 360p second, anything at all third
+        for res in ('240', '360'):
+            if vids[0][res]['url'] is not None:
+                logging.info("Grabbing %sp video" % res)
+                vidurl = vids[0][res]['url']
                 break
+        
+        if vidurl is None:
+            for vid in vids[0]:
+                if vids[0][vid]['url'] is not None:
+                    logging.info("Grabbing %sp format" % vid)
+                    vidurl = vids[0][vid]['url']
+                    break
 
     if vidurl is None:
         logging.info( "Failed to get video: %s" % video)
