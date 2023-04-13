@@ -152,7 +152,7 @@ class ChannelHandler(web.RequestHandler):
         if key is not None:
             logging.info("Got YT API key from ENV: %s" % key)
         else:
-            key = self.get_youtube_api_key(self)
+            key = self.get_youtube_api_key()
             logging.info("Got YT API key from config file: %s" % key)
 
         channel = channel.split('/')
