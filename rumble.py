@@ -306,8 +306,7 @@ def get_rumble_url( video, bitrate=None ):
             logging.info("First json regex worked")
         except:
             logging.info("Trying second json regex")
-            regexSearch = re.search( r'"ua":\{"mp4":.+\}\}\},', el )
-            vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').replace(r'}}},', '}}}]') )
+            vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}}},', '}}}]') )
     else:
         logging.info( "Failed first json regex parse. Trying the second" )
 
