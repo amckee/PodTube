@@ -4,7 +4,7 @@ import misaka, glob, requests
 from configparser import ConfigParser
 from pathlib import Path
 from feedgen.feed import FeedGenerator
-from pytube import YouTube
+from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
@@ -88,7 +88,7 @@ def cleanup():
     # Space Check
     expired_time = time.time() - 259200 # 3 days in seconds
     size_clean = False
-    for f in sorted(glob.glob('./audio/*mp3'), key=lambda a_file: os.path.getctime(a_file)):
+    for f in sorted(glob.glob('./audio/*{mp3,mp3.tmp}'), key=lambda a_file: os.path.getctime(a_file)):
         size = psutil.disk_usage('./audio')
         ctime = os.path.getctime(f)
         size_clean = size_clean or size.free < 536870912
@@ -123,19 +123,31 @@ def convert_videos():
     with (yield converting_lock.acquire()):
         logging.info('Converting: %s', video)
         audio_file = './audio/{}.mp3'.format(video)
-        ffmpeg_process = process.Subprocess([
-            'ffmpeg',
-            '-loglevel', 'panic',
-            '-y',
-            '-i', get_youtube_url(video),
-            '-f', 'mp3', audio_file + '.temp'
-        ])
         try:
+            yutubeUrl = get_youtube_url(video)
+            ffmpeg_process = process.Subprocess([
+                'ffmpeg',
+                '-loglevel', 'panic',
+                '-y',
+                '-i', yutubeUrl,
+                '-f', 'mp3', audio_file + '.temp'
+            ])
             yield ffmpeg_process.wait_for_exit()
             os.rename(audio_file + '.temp', audio_file)
+            logging.info('Successfully converted: %s', video)
         except Exception as ex:
-            logging.error('Error converting file: %s', ex.reason)
-            os.remove(audio_file + '.temp')
+            logging.error('Error converting file: %s', ex)
+            if isinstance(ex, (exceptions.LiveStreamError, exceptions.VideoUnavailable)):
+                if video not in video_links:
+                    video_links[video] = {
+                        'url': None,
+                        'expire': datetime.datetime.now() + datetime.timedelta(hours=6)
+                    }
+                video_links[video]['unavailable'] = True
+            try:
+                os.remove(audio_file + '.temp')
+            except Exception as ex2:
+                logging.error('Error remove temp file: %s', ex2)
         finally:
             del conversion_queue[video]
 
@@ -540,6 +552,10 @@ class AudioHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, audio):
         logging.info('Audio: %s (%s)', audio, self.request.remote_ip)
+        if audio in video_links and 'unavailable' in video_links[audio] and video_links[audio]['unavailable'] == True:
+            # logging.info('Audio: %s is not available (%s)', audio, self.request.remote_ip)
+            self.set_status(422) # Unprocessable Content. E.g. the video is a live stream
+            return
         mp3_file = './audio/{}.mp3'.format(audio)
         if not os.path.exists(mp3_file):
             if audio not in conversion_queue.keys():
@@ -553,6 +569,10 @@ class AudioHandler(web.RequestHandler):
                     # logging.info('User was disconnected while requested audio: %s (%s)', audio, self.request.remote_ip)
                     self.set_status(408)
                     return
+        if audio in video_links and 'unavailable' in video_links[audio] and video_links[audio]['unavailable'] == True:
+            # logging.info('Audio: %s is not available (%s)', audio, self.request.remote_ip)
+            self.set_status(422) # Unprocessable Content. E.g. the video is a live stream
+            return
         request_range = None
         range_header = self.request.headers.get("Range")
         if range_header:
@@ -709,8 +729,8 @@ class UserHandler(web.RequestHandler):
             selfurl = self.channel_handler_path + channel_token
             if append is not None:
                 selfurl += append
-            logging.debug('Redirect to %s' % selfurl)
-            self.redirect( selfurl )
+            logging.info('Redirect to %s' % selfurl)
+            self.redirect( selfurl, permanent = True )
         return None
 
 class FileHandler(web.RequestHandler):
