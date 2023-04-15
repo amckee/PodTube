@@ -530,6 +530,7 @@ class VideoHandler(web.RequestHandler):
 class AudioHandler(web.RequestHandler):
     def initialize(self):
         init()
+        self.disconnected = False
 
     @gen.coroutine
     def head(self, audio):
@@ -548,6 +549,10 @@ class AudioHandler(web.RequestHandler):
                 }
             while audio in conversion_queue:
                 yield gen.sleep(0.5)
+                if self.disconnected:
+                    # logging.info('User was disconnected while requested audio: %s (%s)', audio, self.request.remote_ip)
+                    self.set_status(408)
+                    return
         request_range = None
         range_header = self.request.headers.get("Range")
         if range_header:
@@ -647,6 +652,7 @@ class AudioHandler(web.RequestHandler):
         logging.info(
             'Audio: User quit during transcoding (%s)',
             self.request.remote_ip)
+        self.disconnected = True
 
 class UserHandler(web.RequestHandler):
     channels_cache = {}
