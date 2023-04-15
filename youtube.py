@@ -162,8 +162,11 @@ def get_youtube_url(video):
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
-    def initialize(self):
+    def initialize(self, video_handler_path: str, audio_handler_path: str, autoload_newest_audio: bool = True):
         init()
+        self.autoload_newest_audio = autoload_newest_audio
+        self.video_handler_path = video_handler_path
+        self.audio_handler_path = audio_handler_path
 
     @gen.coroutine
     def head(self, channel):
@@ -265,7 +268,7 @@ class ChannelHandler(web.RequestHandler):
                     key=lambda x: snippet['thumbnails'][x]['width']
                 )
                 fg.title(snippet['channelTitle'])
-                fg.id('http://' + self.request.host + self.request.uri)
+                fg.id(f'{self.request.protocol}://{self.request.host}{self.request.uri}')
                 fg.description(snippet['description'] or ' ')
                 fg.author(
                     name='Podtube',
@@ -316,12 +319,12 @@ class ChannelHandler(web.RequestHandler):
                 fe.updated(snippet['publishedAt'])
                 if channel[1] == 'video':
                     fe.enclosure(
-                        url=f'http://{self.request.host}/youtube/video/{current_video}',
+                        url=f'{self.request.protocol}://{self.request.host}{self.video_handler_path}{current_video}',
                         type="video/mp4"
                     )
                 elif channel[1] == 'audio':
                     fe.enclosure(
-                        url=f'http://{self.request.host}/youtube/audio/{current_video}',
+                        url=f'{self.request.protocol}://{self.request.host}{self.audio_handler_path}{current_video}',
                         type="audio/mpeg"
                     )
                 fe.author(name=snippet['channelTitle'])
@@ -343,6 +346,8 @@ class ChannelHandler(web.RequestHandler):
             channel_feed[chan] = feed
         self.write(feed['feed'])
         self.finish()
+        if not self.autoload_newest_audio:
+            return
         video = video['video']
         mp3_file = 'audio/{}.mp3'.format(video)
         if channel[1] == 'audio' and not os.path.exists(mp3_file) and video not in conversion_queue.keys():
@@ -352,8 +357,11 @@ class ChannelHandler(web.RequestHandler):
             }
 
 class PlaylistHandler(web.RequestHandler):
-    def initialize(self):
+    def initialize(self, video_handler_path: str, audio_handler_path: str, autoload_newest_audio: bool = True):
         init()
+        self.autoload_newest_audio = autoload_newest_audio
+        self.video_handler_path = video_handler_path
+        self.audio_handler_path = audio_handler_path
 
     @gen.coroutine
     def head(self, playlist):
@@ -408,7 +416,7 @@ class PlaylistHandler(web.RequestHandler):
             snippet['title']
         )
         fg.title(snippet['title'])
-        fg.id('http://' + self.request.host + '/youtube/' + self.request.uri)
+        fg.id(f'{self.request.protocol}://{self.request.host}{self.request.uri}')
         fg.description(snippet['description'] or ' ')
         fg.author(
             name='Podtube',
@@ -472,17 +480,20 @@ class PlaylistHandler(web.RequestHandler):
                 )
                 fe.podcast.itunes_image(snippet['thumbnails'][icon]['url'])
                 fe.updated(snippet['publishedAt'])
+                final_url = None
                 if playlist[1] == 'video':
+                    final_url = f'{self.request.protocol}://{self.request.host}{self.video_handler_path}{current_video}'
                     fe.enclosure(
-                        url=f'http://{self.request.host}/youtube/video/{current_video}',
+                        url=final_url,
                         type="video/mp4"
                     )
                 elif playlist[1] == 'audio':
+                    final_url = f'{self.request.protocol}://{self.request.host}{self.audio_handler_path}{current_video}'
                     fe.enclosure(
-                        url=f'http://{self.request.host}/youtube/audio/{current_video}',
+                        url=final_url,
                         type="audio/mpeg"
                     )
-                logging.info( "Final URL created for enclosure: %s" % f'http://{self.request.host}/youtube/video/{current_video}' )
+                logging.debug( "Final URL created for enclosure: %s" % final_url )
                 fe.author(name=snippet['channelTitle'])
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
@@ -501,6 +512,8 @@ class PlaylistHandler(web.RequestHandler):
         playlist_feed[playlist_name] = feed
         self.write(feed['feed'])
         self.finish()
+        if not self.autoload_newest_audio:
+            return
         video = video['video']
         mp3_file = 'audio/{}.mp3'.format(video)
         if playlist[1] == 'audio' and not os.path.exists(mp3_file) and video not in conversion_queue.keys():
@@ -519,7 +532,7 @@ class AudioHandler(web.RequestHandler):
         init()
 
     @gen.coroutine
-    def head(self, channel):
+    def head(self, audio):
         self.set_header('Accept-Ranges', 'bytes')
         self.set_header("Content-Type", "audio/mpeg")
 
