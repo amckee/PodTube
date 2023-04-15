@@ -573,6 +573,9 @@ class AudioHandler(web.RequestHandler):
             # logging.info('Audio: %s is not available (%s)', audio, self.request.remote_ip)
             self.set_status(422) # Unprocessable Content. E.g. the video is a live stream
             return
+        if not os.path.exists(mp3_file):
+            self.set_status(404)
+            return
         request_range = None
         range_header = self.request.headers.get("Range")
         if range_header:
