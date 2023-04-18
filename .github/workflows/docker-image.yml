@@ -1,11 +1,10 @@
 name: Build and push to docker hub
 
-
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "automated_builds" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "automated_builds" ]
 
 jobs:
   build_and_push:
