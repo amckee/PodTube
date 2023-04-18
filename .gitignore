@@ -7,6 +7,8 @@ audio
 *notes
 podtube.log
 fly.toml
+config.ini
+
 
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
@@ -135,4 +137,3 @@ audio/
 .venv
 
 *.lock
-config.ini
