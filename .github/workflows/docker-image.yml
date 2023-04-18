@@ -1,0 +1,44 @@
+name: Build and push to docker hub
+
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Extract version from podtube.py
+      id: extract_version
+      run: |
+        VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
+        NEW_VERSION=$(echo $VERSION | awk -F. '{print$1"."$2"."$3"."$4+01}')
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.NEW_VERSION }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest
+        build-args: |
+          VERSION=${{ env.VERSION }}
