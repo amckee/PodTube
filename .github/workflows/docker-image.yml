@@ -27,7 +27,7 @@ jobs:
       id: extract_version
       run: |
         VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
-        NEW_VERSION=$(echo $VERSION | awk -F. '{print$1"."$2"."$3"."$4+01}')
+        NEW_VERSION=$(date +'%Y.%m.%d').$(grep -E ^__version__ podtube.py | cut -d\' -f2 | awk -F. '{print $4+1}')
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
