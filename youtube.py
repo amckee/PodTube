@@ -157,9 +157,9 @@ def get_youtube_url(video):
     yturl = "https://www.youtube.com/watch?v=%s" % video
     logging.info("Full URL: %s" % yturl)
     yt = YouTube(yturl)
-    logging.info("Stream count: %s" % len(yt.streams))
+    logging.debug("Stream count: %s" % len(yt.streams))
     vid = yt.streams.get_highest_resolution().url
-    logging.info("vid is now: %s" % vid)
+    logging.debug("vid is now: %s" % vid)
     parts = {
         part.split('=')[0]: part.split('=')[1]
         for part in vid.split('?')[-1].split('&')
@@ -170,7 +170,7 @@ def get_youtube_url(video):
     }
     video_links[video] = link
     logging.info( "video: %s" % video )
-    logging.info( "vid: %s" % vid )
+    logging.debug( "vid: %s" % vid )
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
