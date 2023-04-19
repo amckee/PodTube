@@ -28,3 +28,12 @@ http://yourserver.com/rumble/category/category-name
 
 For Daily Motion users:
 http://yourserver.com/dailymotion/user/dailymotion-user-name
+
+
+
+Docker container info:
+Be sure to open a port to containers default 15000
+
+-e YT_API_KEY  -  required for Youtube functions
+
+https://hub.docker.com/r/ftawesome/podtube
