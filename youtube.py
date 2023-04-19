@@ -145,11 +145,17 @@ def convert_videos():
                     }
                 video_links[video]['unavailable'] = True
             try:
-                os.remove(audio_file + '.temp')
+                if os.path.exists(audio_file):
+                    os.remove(audio_file)
             except Exception as ex2:
-                logging.error('Error remove temp file: %s', ex2)
+                logging.error('Error remove broken file: %s', ex2)
         finally:
             del conversion_queue[video]
+            try:
+                if os.path.exists(audio_file + '.temp'):
+                    os.remove(audio_file + '.temp')
+            except Exception as ex2:
+                logging.error('Error remove temp file: %s', ex2)
 
 def get_youtube_url(video):
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
