@@ -74,6 +74,13 @@ if __name__ == '__main__':
         choices=logging._nameToLevel.keys()
     )
     parser.add_argument(
+        '--log-filemode',
+        type=str,
+        default='a',
+        help="Logging file mode using for python logging module",
+        choices=['a', 'w']
+    )
+    parser.add_argument(
         '-v', '--version',
         action='version',
         version="%(prog)s " + __version__
@@ -83,7 +90,7 @@ if __name__ == '__main__':
         level=logging.getLevelName(args.log_level),
         format=args.log_format,
         filename=args.log_file,
-        filemode='a'
+        filemode=args.log_filemode
     )
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
