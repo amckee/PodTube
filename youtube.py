@@ -229,6 +229,12 @@ class ChannelHandler(web.RequestHandler):
                 params=payload
             )
             calls += 1
+        if request.status_code == 200:
+            logging.debug('Downloaded Channel Information')
+        else:
+            logging.error('Error Downloading Channel: %s', request.reason)
+            self.send_error(reason='Error Downloading Channel')
+            return
         response = request.json()
         channel_data = response['items'][0]
         if channel[0] != channel_data['id']:
@@ -400,13 +406,13 @@ class PlaylistHandler(web.RequestHandler):
             params=payload
         )
         calls += 1
-        response = request.json()
         if request.status_code == 200:
             logging.debug('Downloaded Playlist Information')
         else:
             logging.error('Error Downloading Playlist: %s', request.reason)
             self.send_error(reason='Error Downloading Playlist')
             return
+        response = request.json()
         fg = FeedGenerator()
         fg.load_extension('podcast')
         fg.generator(
