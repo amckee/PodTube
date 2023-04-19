@@ -200,6 +200,77 @@ class ChannelHandler(web.RequestHandler):
         fg = None
         video = None
         calls = 0
+        payload = {
+            'part': 'snippet',
+            'maxResults': 1,
+            'id': channel[0],
+            'key': key
+        }
+        request = requests.get(
+             'https://www.googleapis.com/youtube/v3/channels',
+             params=payload
+        )
+        calls += 1
+        if request.status_code != 200:
+            payload = {
+                'part': 'snippet',
+                'maxResults': 1,
+                'forUsername': channel[0],
+                'key': key
+            }
+            request = requests.get(
+                'https://www.googleapis.com/youtube/v3/channels',
+                params=payload
+            )
+            calls += 1
+        response = request.json()
+        channel_data = response['items'][0]
+        if channel[0] != channel_data['id']:
+            channel[0] = channel_data['id']
+            channel_name.append('/'.join(channel))
+        channel_data = channel_data['snippet']
+        fg = FeedGenerator()
+        fg.load_extension('podcast')
+        fg.generator(
+            'PodTube (python-feedgen)',
+            __version__,
+            'https://github.com/amckee/PodTube'
+        )
+        if 'title' not in channel_data:
+            logging.info("Channel title not found")
+            channel_data['title'] = channel[0]
+        logging.info(
+            'Channel: %s (%s)',
+            channel[0],
+            channel_data['title']
+        )
+        icon = max(
+            channel_data['thumbnails'],
+            key=lambda x: channel_data['thumbnails'][x]['width']
+        )
+        fg.title(channel_data['title'])
+        fg.id(f'{self.request.protocol}://{self.request.host}{self.request.uri}')
+        fg.description(channel_data['description'] or ' ')
+        fg.author(
+            name='Podtube',
+            email='armware+podtube@gmail.com',
+            uri='https://github.com/amckee/PodTube')
+        fg.podcast.itunes_author(channel_data['title'])
+        fg.image(channel_data['thumbnails'][icon]['url'])
+        fg.link(
+            href=f'https://www.youtube.com/channel/%s' % channel[0],
+            rel='self'
+        )
+        fg.language('en-US')
+        fg.podcast.itunes_image(channel_data['thumbnails'][icon]['url'])
+        fg.podcast.itunes_explicit('no')
+        fg.podcast.itunes_owner(
+            name='Podtube',
+            email='armware+podtube@gmail.com'
+        )
+        fg.podcast.itunes_summary(channel_data['description'] or ' ')
+        fg.podcast.itunes_category(cat='Technology')
+        fg.updated(str(datetime.datetime.utcnow()) + 'Z')
         response = {'nextPageToken': ''}
         while 'nextPageToken' in response.keys():
             next_page = response['nextPageToken']
@@ -215,32 +286,6 @@ class ChannelHandler(web.RequestHandler):
                 params=payload
             )
             calls += 1
-            if request.status_code != 200:
-                payload = {
-                    'part': 'snippet',
-                    'maxResults': 1,
-                    'forUsername': channel[0],
-                    'key': key
-                }
-                request = requests.get(
-                    'https://www.googleapis.com/youtube/v3/channels',
-                    params=payload
-                )
-                response = request.json()
-                channel[0] = response['items'][0]['id']
-                channel_name.append('/'.join(channel))
-                payload = {
-                    'part': 'snippet,contentDetails',
-                    'maxResults': 50,
-                    'channelId': channel[0],
-                    'key': key,
-                    'pageToken': next_page
-                }
-                request = requests.get(
-                    'https://www.googleapis.com/youtube/v3/activities',
-                    params=payload
-                )
-                calls += 2
             response = request.json()
             if request.status_code == 200:
                 logging.debug('Downloaded Channel Information')
@@ -248,60 +293,6 @@ class ChannelHandler(web.RequestHandler):
                 logging.error('Error Downloading Channel: %s', request.reason)
                 self.send_error(reason='Error Downloading Channel')
                 return
-            if not fg:
-                fg = FeedGenerator()
-                fg.load_extension('podcast')
-                fg.generator(
-                    'PodTube (python-feedgen)',
-                    __version__,
-                    'https://github.com/amckee/PodTube'
-                )
-                for item in response['items']:
-                    if item['snippet']['type'] != 'upload':
-                        continue
-                    elif 'Private' in item['snippet']['title']:
-                        continue
-                    else:
-                        snippet = item['snippet']
-                        break
-                try:
-                    chan=snippet['channelTitle']
-                except KeyError:
-                    snippet['channelTitle'] = snippet['channelId']
-                    logging.info("Channel title not found")
-                
-                logging.info(
-                    'Channel: %s (%s)',
-                    channel[0],
-                    snippet['channelTitle']
-                )
-                icon = max(
-                    snippet['thumbnails'],
-                    key=lambda x: snippet['thumbnails'][x]['width']
-                )
-                fg.title(snippet['channelTitle'])
-                fg.id(f'{self.request.protocol}://{self.request.host}{self.request.uri}')
-                fg.description(snippet['description'] or ' ')
-                fg.author(
-                    name='Podtube',
-                    email='armware+podtube@gmail.com',
-                    uri='https://github.com/amckee/PodTube')
-                fg.podcast.itunes_author(snippet['channelTitle'])
-                fg.image(snippet['thumbnails'][icon]['url'])
-                fg.link(
-                    href=f'https://www.youtube.com/channel/%s' % channel[0],
-                    rel='self'
-                )
-                fg.language('en-US')
-                fg.podcast.itunes_image(snippet['thumbnails'][icon]['url'])
-                fg.podcast.itunes_explicit('no')
-                fg.podcast.itunes_owner(
-                    name='Podtube',
-                    email='armware+podtube@gmail.com'
-                )
-                fg.podcast.itunes_summary(snippet['description'])
-                fg.podcast.itunes_category(cat='Technology')
-                fg.updated(str(datetime.datetime.utcnow()) + 'Z')
             for item in response['items']:
                 snippet = item['snippet']
                 if snippet['type'] != 'upload':
