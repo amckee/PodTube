@@ -62,9 +62,16 @@ if __name__ == '__main__':
     parser.add_argument(
         '--log-format',
         type=str,
-        default='%(asctime)-15s %(message)s',
+        default='%(asctime)-15s [%(levelname)s] %(message)s',
         metavar='FORMAT',
         help='Logging format using syntax for python logging module'
+    )
+    parser.add_argument(
+        '--log-level',
+        type=str,
+        default=logging.getLevelName(logging.INFO),
+        help="Logging level using for python logging module",
+        choices=logging._nameToLevel.keys()
     )
     parser.add_argument(
         '-v', '--version',
@@ -73,7 +80,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.getLevelName(args.log_level),
         format=args.log_format,
         filename=args.log_file,
         filemode='a'
