@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from configparser import ConfigParser
 import glob, logging, os
 from argparse import ArgumentParser
 
@@ -26,7 +27,8 @@ class FileHandler(web.RequestHandler):
             )
         self.write('</body></html>')
 
-def make_app(key="test"):
+def make_app(config: ConfigParser):
+    youtube.init(config)
     webapp = web.Application([
         (r'/youtube/channel/(.*)', youtube.ChannelHandler, {
             'video_handler_path': '/youtube/video/',
@@ -61,48 +63,74 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     if not os.path.exists('./audio'):
         os.mkdir('audio')
+    defaults = {}
     parser = ArgumentParser(prog='PodTube')
+    parser.add_argument(
+        '--config-file',
+        type=str,
+        metavar='CONF FILE',
+        help='Location and name of config file'
+    )
     parser.add_argument(
         'port',
         type=int,
-        default=15000,
         nargs='?',
         help='Port Number to listen on'
     )
+    defaults["port"] = 15000
     parser.add_argument(
         '--log-file',
         type=str,
-        default='/dev/stdout',
-        metavar='FILE',
+        metavar='LOG FILE',
         help='Location and name of log file'
     )
+    defaults["log_file"] = '/dev/stdout'
     parser.add_argument(
         '--log-format',
         type=str,
-        default='%(asctime)-15s [%(levelname)s] %(message)s',
-        metavar='FORMAT',
+        metavar='LOG FORMAT',
         help='Logging format using syntax for python logging module'
     )
+    defaults["log_format"] = '%(asctime)-15s [%(levelname)s] %(message)s'
     parser.add_argument(
         '--log-level',
         type=str,
-        default=logging.getLevelName(logging.INFO),
         help="Logging level using for python logging module",
         choices=logging._nameToLevel.keys()
     )
+    defaults['log_level'] = logging.getLevelName(logging.INFO)
     parser.add_argument(
         '--log-filemode',
         type=str,
-        default='a',
         help="Logging file mode using for python logging module",
         choices=['a', 'w']
     )
+    defaults['log_filemode'] = 'a'
     parser.add_argument(
         '-v', '--version',
         action='version',
         version="%(prog)s " + __version__
     )
     args = parser.parse_args()
+    conf = None
+    if args.config_file:
+        conf = ConfigParser(inline_comment_prefixes='#')
+        read_ok = conf.read(args.config_file)
+        if not read_ok:
+            logging.error("Error reading configuration file: " + args.config_file)
+            conf = None
+    if conf is not None:
+        args.port         = args.port         if args.port         is not None else conf.get("general", "port"        , defaults["port"])
+        args.log_file     = args.log_file     if args.log_file     is not None else conf.get("general", "log_file"    , defaults["log_file"])
+        args.log_format   = args.log_format   if args.log_format   is not None else conf.get("general", "log_format"  , defaults["log_format"])
+        args.log_level    = args.log_level    if args.log_level    is not None else conf.get("general", "log_level"   , defaults["log_level"])
+        args.log_filemode = args.log_filemode if args.log_filemode is not None else conf.get("general", "log_filemode", defaults["log_filemode"])
+    else:
+        args.port         = args.port         if args.port         is not None else defaults["port"]
+        args.log_file     = args.log_file     if args.log_file     is not None else defaults["log_file"]
+        args.log_format   = args.log_format   if args.log_format   is not None else defaults["log_format"]
+        args.log_level    = args.log_level    if args.log_level    is not None else defaults["log_level"]
+        args.log_filemode = args.log_filemode if args.log_filemode is not None else defaults["log_filemode"]
     logging.basicConfig(
         level=logging.getLevelName(args.log_level),
         format=args.log_format,
@@ -111,15 +139,7 @@ if __name__ == '__main__':
     )
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
-    app = make_app( )
+    app = make_app(conf)
     app.listen(args.port)
     logging.info(f'Started listening on {args.port}')
-    ioloop.PeriodicCallback(
-        callback=youtube.cleanup,
-        callback_time=600000
-    ).start()
-    ioloop.PeriodicCallback(
-        callback=youtube.convert_videos,
-        callback_time=1000
-    ).start()
     ioloop.IOLoop.instance().start()
