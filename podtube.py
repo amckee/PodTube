@@ -3,20 +3,44 @@
 import glob, logging, os
 from argparse import ArgumentParser
 
-#import misaka
+import misaka
 import youtube, bitchute, rumble, dailymotion
 from tornado import gen, httputil, ioloop, iostream, process, web
 
 __version__ = 'v2023.04.12.05'
 
+class FileHandler(web.RequestHandler):
+    def get(self):
+        logging.info('ReadMe (%s)', self.request.remote_ip)
+        self.write('<html><head><title>PodTube (v')
+        self.write(__version__)
+        self.write(')</title><link rel="shortcut icon" href="favicon.ico">')
+        self.write('<link rel="stylesheet" type="text/css" href="markdown.css">')
+        self.write('</head><body>')
+        with open('README.md') as text:
+            self.write(
+                misaka.html(
+                    text.read(),
+                    extensions=('tables', 'fenced-code')
+                )
+            )
+        self.write('</body></html>')
+
 def make_app(key="test"):
     webapp = web.Application([
-        (r'/youtube/channel/(.*)', youtube.ChannelHandler),
-        (r'/youtube/playlist/(.*)', youtube.PlaylistHandler),
+        (r'/youtube/channel/(.*)', youtube.ChannelHandler, {
+            'video_handler_path': '/youtube/video/',
+            'audio_handler_path': '/youtube/audio/',
+            'autoload_newest_audio': False
+        }),
+        (r'/youtube/playlist/(.*)', youtube.PlaylistHandler, {
+            'video_handler_path': '/youtube/video/',
+            'audio_handler_path': '/youtube/audio/',
+            'autoload_newest_audio': False
+        }),
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
-        (r'/youtube/user/@(.*)', youtube.UserHandler),
-        (r'/youtube/', youtube.FileHandler),
+        (r'/youtube/user/@(.*)', youtube.UserHandler, {'channel_handler_path': '/youtube/channel/'}),
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),
@@ -28,6 +52,7 @@ def make_app(key="test"):
         (r'/config.ini', web.RedirectHandler, {'url': '/'}),
         (r'/README.md', web.RedirectHandler, {'url': '/'}),
         (r'/Dockerfile', web.RedirectHandler, {'url': '/'}),
+        (r'/', FileHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
     return webapp
@@ -54,9 +79,23 @@ if __name__ == '__main__':
     parser.add_argument(
         '--log-format',
         type=str,
-        default='%(asctime)-15s %(message)s',
+        default='%(asctime)-15s [%(levelname)s] %(message)s',
         metavar='FORMAT',
         help='Logging format using syntax for python logging module'
+    )
+    parser.add_argument(
+        '--log-level',
+        type=str,
+        default=logging.getLevelName(logging.INFO),
+        help="Logging level using for python logging module",
+        choices=logging._nameToLevel.keys()
+    )
+    parser.add_argument(
+        '--log-filemode',
+        type=str,
+        default='a',
+        help="Logging file mode using for python logging module",
+        choices=['a', 'w']
     )
     parser.add_argument(
         '-v', '--version',
@@ -65,10 +104,10 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.getLevelName(args.log_level),
         format=args.log_format,
         filename=args.log_file,
-        filemode='a'
+        filemode=args.log_filemode
     )
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
@@ -77,7 +116,7 @@ if __name__ == '__main__':
     logging.info(f'Started listening on {args.port}')
     ioloop.PeriodicCallback(
         callback=youtube.cleanup,
-        callback_time=1000
+        callback_time=600000
     ).start()
     ioloop.PeriodicCallback(
         callback=youtube.convert_videos,
