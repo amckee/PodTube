@@ -8,12 +8,12 @@ from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
-key
-cleanup_period
-convert_video_period
-audio_expiration_time
-start_cleanup_size_threshold
-stop_cleanup_size_threshold
+key = None
+cleanup_period = None
+convert_video_period = None
+audio_expiration_time = None
+start_cleanup_size_threshold = None
+stop_cleanup_size_threshold = None
 
 video_links = {}
 playlist_feed = {}
@@ -45,12 +45,12 @@ def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str
 
 def init(conf: ConfigParser):
     global key, cleanup_period, convert_video_period, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
-    key                          = get_env_or_config_option(conf, "YT_API_KEY"                     , "api_key"                     , None)
-    cleanup_period               = get_env_or_config_option(conf, "YT_CLEANUP_PERIOD"              , "cleanup_period"              , 600000) # 10 minutes
-    convert_video_period         = get_env_or_config_option(conf, "YT_CONVERT_VIDEO_PERIOD"        , "convert_video_period"        , 1000) # 1 second
-    audio_expiration_time        = get_env_or_config_option(conf, "YT_AUDIO_EXPIRATION_TIME"       , "audio_expiration_time"       , 259200000) # 3 days
-    start_cleanup_size_threshold = get_env_or_config_option(conf, "YT_START_CLEANUP_SIZE_THRESHOLD", "start_cleanup_size_threshold", 536870912) # 0.5GiB
-    stop_cleanup_size_threshold  = get_env_or_config_option(conf, "YT_STOP_CLEANUP_SIZE_THRESHOLD" , "stop_cleanup_size_threshold" , 16106127360) # 15GiB
+    key                          = str(get_env_or_config_option(conf, "YT_API_KEY"                     , "api_key"                     , default_value=None))
+    cleanup_period               = int(get_env_or_config_option(conf, "YT_CLEANUP_PERIOD"              , "cleanup_period"              , default_value=600000)) # 10 minutes
+    convert_video_period         = int(get_env_or_config_option(conf, "YT_CONVERT_VIDEO_PERIOD"        , "convert_video_period"        , default_value=1000)) # 1 second
+    audio_expiration_time        = int(get_env_or_config_option(conf, "YT_AUDIO_EXPIRATION_TIME"       , "audio_expiration_time"       , default_value=259200000)) # 3 days
+    start_cleanup_size_threshold = int(get_env_or_config_option(conf, "YT_START_CLEANUP_SIZE_THRESHOLD", "start_cleanup_size_threshold", default_value=536870912)) # 0.5GiB
+    stop_cleanup_size_threshold  = int(get_env_or_config_option(conf, "YT_STOP_CLEANUP_SIZE_THRESHOLD" , "stop_cleanup_size_threshold" , default_value=16106127360)) # 15GiB
     
     ioloop.PeriodicCallback(
         callback=cleanup,

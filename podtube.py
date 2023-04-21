@@ -121,11 +121,11 @@ if __name__ == '__main__':
             logging.error("Error reading configuration file: " + args.config_file)
             conf = None
     if conf is not None:
-        args.port         = args.port         if args.port         is not None else conf.get("general", "port"        , defaults["port"])
-        args.log_file     = args.log_file     if args.log_file     is not None else conf.get("general", "log_file"    , defaults["log_file"])
-        args.log_format   = args.log_format   if args.log_format   is not None else conf.get("general", "log_format"  , defaults["log_format"])
-        args.log_level    = args.log_level    if args.log_level    is not None else conf.get("general", "log_level"   , defaults["log_level"])
-        args.log_filemode = args.log_filemode if args.log_filemode is not None else conf.get("general", "log_filemode", defaults["log_filemode"])
+        args.port         = args.port         if args.port         is not None else conf.get("general", "port"        , raw=True, fallback=defaults["port"])
+        args.log_file     = args.log_file     if args.log_file     is not None else conf.get("general", "log_file"    , raw=True, fallback=defaults["log_file"])
+        args.log_format   = args.log_format   if args.log_format   is not None else conf.get("general", "log_format"  , raw=True, fallback=defaults["log_format"])
+        args.log_level    = args.log_level    if args.log_level    is not None else conf.get("general", "log_level"   , raw=True, fallback=defaults["log_level"])
+        args.log_filemode = args.log_filemode if args.log_filemode is not None else conf.get("general", "log_filemode", raw=True, fallback=defaults["log_filemode"])
     else:
         args.port         = args.port         if args.port         is not None else defaults["port"]
         args.log_file     = args.log_file     if args.log_file     is not None else defaults["log_file"]
