@@ -101,7 +101,7 @@ jobs:
       - name: merge into version
         run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
   deploy_app:
-    needs: push_to_Docker_Hub_amd64
+    needs: [push_to_Docker_Hub_amd64, merge_tags]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
