@@ -34,12 +34,10 @@ def make_app(config: ConfigParser):
         (r'/youtube/channel/(.*)', youtube.ChannelHandler, {
             'video_handler_path': '/youtube/video/',
             'audio_handler_path': '/youtube/audio/',
-            'autoload_newest_audio': False
         }),
         (r'/youtube/playlist/(.*)', youtube.PlaylistHandler, {
             'video_handler_path': '/youtube/video/',
             'audio_handler_path': '/youtube/audio/',
-            'autoload_newest_audio': False
         }),
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),

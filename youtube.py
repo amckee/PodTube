@@ -8,12 +8,15 @@ from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
+import utils
+
 key = None
 cleanup_period = None
 convert_video_period = None
 audio_expiration_time = None
 start_cleanup_size_threshold = None
 stop_cleanup_size_threshold = None
+autoload_newest_audio = None
 
 video_links = {}
 playlist_feed = {}
@@ -51,6 +54,8 @@ def init(conf: ConfigParser):
     audio_expiration_time        = int(get_env_or_config_option(conf, "YT_AUDIO_EXPIRATION_TIME"       , "audio_expiration_time"       , default_value=259200000)) # 3 days
     start_cleanup_size_threshold = int(get_env_or_config_option(conf, "YT_START_CLEANUP_SIZE_THRESHOLD", "start_cleanup_size_threshold", default_value=536870912)) # 0.5GiB
     stop_cleanup_size_threshold  = int(get_env_or_config_option(conf, "YT_STOP_CLEANUP_SIZE_THRESHOLD" , "stop_cleanup_size_threshold" , default_value=16106127360)) # 15GiB
+    autoload_newest_audio        =     get_env_or_config_option(conf, "YT_AUTOLOAD_NEWEST_AUDIO"       , "autoload_newest_audio"       , default_value=True)
+    autoload_newest_audio = utils.convert_to_bool(autoload_newest_audio)
     
     ioloop.PeriodicCallback(
         callback=cleanup,
@@ -203,8 +208,7 @@ def get_youtube_url(video):
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
-    def initialize(self, video_handler_path: str, audio_handler_path: str, autoload_newest_audio: bool = True):
-        self.autoload_newest_audio = autoload_newest_audio
+    def initialize(self, video_handler_path: str, audio_handler_path: str):
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
 
@@ -383,7 +387,9 @@ class ChannelHandler(web.RequestHandler):
             channel_feed[chan] = feed
         self.write(feed['feed'])
         self.finish()
-        if not self.autoload_newest_audio:
+
+        global autoload_newest_audio
+        if not autoload_newest_audio:
             return
         video = video['video']
         mp3_file = 'audio/{}.mp3'.format(video)
@@ -394,8 +400,7 @@ class ChannelHandler(web.RequestHandler):
             }
 
 class PlaylistHandler(web.RequestHandler):
-    def initialize(self, video_handler_path: str, audio_handler_path: str, autoload_newest_audio: bool = True):
-        self.autoload_newest_audio = autoload_newest_audio
+    def initialize(self, video_handler_path: str, audio_handler_path: str):
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
 
@@ -548,7 +553,8 @@ class PlaylistHandler(web.RequestHandler):
         playlist_feed[playlist_name] = feed
         self.write(feed['feed'])
         self.finish()
-        if not self.autoload_newest_audio:
+        global autoload_newest_audio
+        if not autoload_newest_audio:
             return
         video = video['video']
         mp3_file = 'audio/{}.mp3'.format(video)
