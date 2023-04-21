@@ -6,35 +6,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  version_bump:
+  get_version:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Bump version
+      - name: Get version
         run: |
-          # Get the current version
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
-          NEW_VERSION=$(echo $VERSION | awk -F. '{print$1"."$2"."$3"."$4+01}')
-          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          # update main file
-          sed -i "s/^__version__ = '$VERSION'/__version__ = '$NEW_VERSION'/" podtube.py
         shell: bash
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Action"
-          git tag -a v$VERSION -m "version $VERSION"
-          git commit -a -m "Bump patch version to $NEW_VERSION"
-          git push origin HEAD --follow-tags
-          git fetch --unshallow
-          git checkout main
-          git merge stable
-          git push origin HEAD --follow-tags
-          git checkout stable
-
   push_to_Docker_Hub_amd64:
-      needs: version_bump
+      needs: get_version
       runs-on: ubuntu-latest
       steps:
         - name: Checkout Repo
@@ -55,7 +37,7 @@ jobs:
             tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
             platforms: linux/amd64
   push_to_Docker_Hub_arm64:
-        needs: version_bump
+        needs: get_version
         runs-on: ubuntu-latest
         steps:
           - name: checkout repo
@@ -78,15 +60,14 @@ jobs:
               tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64
               platforms: linux/arm64
   push_to_Docker_Hub_arm_v7:
-      needs: version_bump
+      needs: get_version
       runs-on: ubuntu-latest
       steps:
         - name: checkout repo
           uses: actions/checkout@v3
         - name: get version
           run: |
-            # Get the current version
-            VERSION=$(grep -oP '^version = "\K[0-9]+\.[0-9]+\.[0-9]+' Cargo.toml)
+            VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
             echo "VERSION=${VERSION}" >> $GITHUB_ENV
         - name: Set up QEMU
           uses: docker/setup-qemu-action@v2
@@ -106,15 +87,13 @@ jobs:
             tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7
             platforms: linux/arm/v7
   merge_tags:
-      needs: [push_to_Docker_Hub_amd64]
-      #needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_arm_v7, push_to_Docker_Hub_amd64]
+      needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_arm_v7, push_to_Docker_Hub_amd64]
       runs-on: ubuntu-latest
       steps:
         - name: checkout repo
           uses: actions/checkout@v3
         - name: get version
           run: |
-            # Get the current version
             VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
             echo "VERSION=${VERSION}" >> $GITHUB_ENV
         - name: Login to DockerHub
