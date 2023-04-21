@@ -2,7 +2,6 @@ name: Deploy to dockerhub
 on:
   push:
     branches: [ master ]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -101,3 +100,12 @@ jobs:
         run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
       - name: merge into version
         run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
+  deploy_app:
+    needs: push_to_Docker_Hub_amd64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only -a podtube
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
