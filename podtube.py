@@ -7,7 +7,8 @@ import misaka
 import youtube, bitchute, rumble, dailymotion
 from tornado import gen, httputil, ioloop, iostream, process, web
 
-__version__ = 'v2023.04.21.4'
+# BE SURE TO UPDATE THIS - ci/cd depends on it
+__version__ = 'v2023.04.21.5'
 
 class FileHandler(web.RequestHandler):
     def get(self):

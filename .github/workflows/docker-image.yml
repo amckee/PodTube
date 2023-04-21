@@ -99,5 +99,5 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: merge into latest
         run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
-      - name: merge into versio
+      - name: merge into version
         run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
