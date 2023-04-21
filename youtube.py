@@ -111,7 +111,7 @@ def cleanup():
     # Space Check
     expired_time = time.time() - (audio_expiration_time / 1000)
     size_clean = False
-    for f in sorted(glob.glob('./audio/*{mp3,mp3.tmp}'), key=lambda a_file: os.path.getctime(a_file)):
+    for f in sorted(glob.glob('./audio/*mp3'), key=lambda a_file: os.path.getctime(a_file)):
         size = psutil.disk_usage('./audio')
         ctime = os.path.getctime(f)
         size_clean = size_clean or size.free < start_cleanup_size_threshold
