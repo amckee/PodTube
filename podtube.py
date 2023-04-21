@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 import misaka
 import youtube, bitchute, rumble, dailymotion
-from tornado import gen, httputil, ioloop, iostream, process, web
+from tornado import ioloop, web
 
 # BE SURE TO UPDATE THIS - ci/cd depends on it
 __version__ = 'v2023.04.21.5'
@@ -63,11 +63,12 @@ if __name__ == '__main__':
     if not os.path.exists('./audio'):
         os.mkdir('audio')
     defaults = {}
-    parser = ArgumentParser(prog='PodTube')
+    parser = ArgumentParser(
+        description="This is a python application for converting Youtube, Rumble and Bitchute channels into podcast-friendly RSS feeds."
+    )
     parser.add_argument(
         '--config-file',
         type=str,
-        metavar='CONF FILE',
         help='Location and name of config file'
     )
     parser.add_argument(
@@ -80,14 +81,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--log-file',
         type=str,
-        metavar='LOG FILE',
         help='Location and name of log file'
     )
     defaults["log_file"] = '/dev/stdout'
     parser.add_argument(
         '--log-format',
         type=str,
-        metavar='LOG FORMAT',
         help='Logging format using syntax for python logging module'
     )
     defaults["log_format"] = '%(asctime)-15s [%(levelname)s] %(message)s'
@@ -138,6 +137,7 @@ if __name__ == '__main__':
     )
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
+    logging.info(f"Start server")
     app = make_app(conf)
     app.listen(args.port)
     logging.info(f'Started listening on {args.port}')
