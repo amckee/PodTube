@@ -87,23 +87,26 @@ Be sure to open a port to containers default 15000
 
 ## Configuration
 
-### Start command
+### Command line
 
 ```rs
 podtube.py [--config-file CONFIG_FILE] [--log-file LOG_FILE] [--log-format LOG_FORMAT] [--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}] [--log-filemode {a,w}] [port]
 ```
 
-| argument | value | default | description |
-| --- | --- | --- | --- |
-| --config-file | CONFIG_FILE | `None` | Path to config file |
-| --log-file | LOG_FILE | `/dev/stdout` | Path to log file or `/dev/stdout` for standard output |
-| --log-format | LOG_FORMAT | `%(asctime)-15s [%(levelname)s] %(message)s` | Logging format using syntax for python `logging` module |
-| --log-level | `CRITICAL`<br>`FATAL`<br>`ERROR`<br>`WARN`<br>`WARNING`<br>`INFO`<br>`DEBUG`<br>`NOTSET` | `INFO` | Logging level using for python `logging` module |
-| --log-filemode | `a`<br>`w` | `a` | Logging file mode using for python `logging` module<br>`a` - appending to the end of file if it exists<br>`w` - truncating the file first |
-| port | PORT_NUMBER | `15000` | Port Number to listen on |
+| argument | config | env | value | default | description |
+| --- | --- | --- | --- | --- | --- |
+| --config-file |  | CONFIG_FILE | CONFIG_FILE | `None` | Path to config file |
+| --log-file | log_file | GENERAL_LOG_FILE | LOG_FILE | `/dev/stdout` | Path to log file or `/dev/stdout` for standard output |
+| --log-format | log_format | GENERAL_LOG_FORMAT | LOG_FORMAT | `%(asctime)-15s [%(levelname)s] %(message)s` | Logging format using syntax for python `logging` module |
+| --log-level | log_level | GENERAL_LOG_LEVEL | `CRITICAL`<br>`FATAL`<br>`ERROR`<br>`WARN`<br>`WARNING`<br>`INFO`<br>`DEBUG`<br>`NOTSET` | `INFO` | Logging level using for python `logging` module |
+| --log-filemode | log_filemode | GENERAL_LOG_FILEMODE | `a`<br>`w` | `a` | Logging file mode using for python `logging` module<br>`a` - appending to the end of file if it exists<br>`w` - truncating the file first |
+| port | port | GENERAL_PORT |  PORT_NUMBER | `15000` | Port Number to listen on |
 
 
-> Command line arguments and environment variables take precedence over values in the configuration file
+> Priority for applying the configuration in descending order:
+> 1. command line arguments
+> 2. environment variables
+> 3. configuration file
 
 ### Configuration file example
 
@@ -126,19 +129,6 @@ autoload_newest_audio=1
 ```
 
 ### Youtube configuration
-
-#### Environment variables
-```
-YT_API_KEY
-YT_CLEANUP_PERIOD
-YT_CONVERT_VIDEO_PERIOD
-YT_AUDIO_EXPIRATION_TIME
-YT_START_CLEANUP_SIZE_THRESHOL
-YT_STOP_CLEANUP_SIZE_THRESHOLD
-YT_AUTOLOAD_NEWEST_AUDIO
-```
-
-#### Youtube module configuration
 
 | config | env | default value | type | description |
 | --- | --- | --- | --- | --- |

@@ -1,3 +1,5 @@
+from configparser import ConfigParser, NoOptionError, NoSectionError
+import logging
 import os
 from asyncio import sleep
 from datetime import datetime
@@ -44,3 +46,24 @@ def convert_to_bool(input) -> bool:
     if type(input) is str:
         return input.lower() in ['1', 'true', 't', 'yes', 'y', 'on']
     return bool(input)
+
+
+
+def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, config_section: str, conf_raw: bool = True, default_value = None):
+    value = os.getenv(env_name)
+    if value is not None:
+        logging.info("Got '%s' from ENV: %s", env_name, value)
+    elif conf is not None:
+        try:
+            value = conf.get(config_section, config_name, raw=conf_raw)
+            logging.info("Got '%s:%s' from config file: %s", config_section, config_name, value)
+        except Exception as e:
+            value = default_value
+            if isinstance(e, (NoSectionError, NoOptionError)):
+                logging.info("No configuration '%s:%s'. Default value is used: %s", config_section, config_name, value)
+            else:
+                logging.error("An error occurred while reading configuration '%s:%s'. Default value is used: %s. Error: %s", config_section, config_name, value, e)
+    else:
+        value = default_value
+        logging.info("No configuration file or environment variable '%s'. Default value is used: %s", env_name, value)
+    return value

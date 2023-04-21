@@ -27,24 +27,8 @@ __version__ = 'v2023.04.21.5'
 conversion_queue = {}
 converting_lock = Semaphore(2)
 
-def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, config_section: str = 'youtube', default_value = None):
-    value = os.getenv(env_name)
-    if value is not None:
-        logging.info("Got '%s' from ENV: %s", env_name, value)
-    elif conf is not None:
-        try:
-            value = conf.get(config_section, config_name)
-            logging.info("Got '%s:%s' from config file: %s", config_section, config_name, value)
-        except Exception as e:
-            value = default_value
-            if isinstance(e, (NoSectionError, NoOptionError)):
-                logging.info("No configuration '%s:%s'. Default value is used: %s", config_section, config_name, value)
-            else:
-                logging.error("An error occurred while reading configuration '%s:%s'. Default value is used: %s. Error: %s", config_section, config_name, value, e)
-    else:
-        value = default_value
-        logging.info("No configuration file or environment variable '%s'. Default value is used: %s", env_name, value)
-    return value
+def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+    return utils.get_env_or_config_option(conf, env_name, config_name, "youtube", default_value=default_value)
 
 def init(conf: ConfigParser):
     global key, cleanup_period, convert_video_period, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold

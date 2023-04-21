@@ -4,6 +4,7 @@ from configparser import ConfigParser
 import glob, logging, os
 from argparse import ArgumentParser
 
+import utils
 import misaka
 import youtube, bitchute, rumble, dailymotion
 from tornado import ioloop, web
@@ -27,6 +28,9 @@ class FileHandler(web.RequestHandler):
                 )
             )
         self.write('</body></html>')
+
+def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+    return utils.get_env_or_config_option(conf, env_name, config_name, "general", default_value=default_value)
 
 def make_app(config: ConfigParser):
     youtube.init(config)
@@ -111,24 +115,20 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     conf = None
+    env_conf_file = os.getenv("CONFIG_FILE")
+    if env_conf_file is not None:
+        args.config_file = env_conf_file
     if args.config_file:
         conf = ConfigParser(inline_comment_prefixes='#')
         read_ok = conf.read(args.config_file)
         if not read_ok:
             logging.error("Error reading configuration file: " + args.config_file)
             conf = None
-    if conf is not None:
-        args.port         = args.port         if args.port         is not None else conf.get("general", "port"        , raw=True, fallback=defaults["port"])
-        args.log_file     = args.log_file     if args.log_file     is not None else conf.get("general", "log_file"    , raw=True, fallback=defaults["log_file"])
-        args.log_format   = args.log_format   if args.log_format   is not None else conf.get("general", "log_format"  , raw=True, fallback=defaults["log_format"])
-        args.log_level    = args.log_level    if args.log_level    is not None else conf.get("general", "log_level"   , raw=True, fallback=defaults["log_level"])
-        args.log_filemode = args.log_filemode if args.log_filemode is not None else conf.get("general", "log_filemode", raw=True, fallback=defaults["log_filemode"])
-    else:
-        args.port         = args.port         if args.port         is not None else defaults["port"]
-        args.log_file     = args.log_file     if args.log_file     is not None else defaults["log_file"]
-        args.log_format   = args.log_format   if args.log_format   is not None else defaults["log_format"]
-        args.log_level    = args.log_level    if args.log_level    is not None else defaults["log_level"]
-        args.log_filemode = args.log_filemode if args.log_filemode is not None else defaults["log_filemode"]
+    args.port         = args.port         if args.port         is not None else get_env_or_config_option(conf, "GENERAL_PORT"        , "port"        , defaults["port"])
+    args.log_file     = args.log_file     if args.log_file     is not None else get_env_or_config_option(conf, "GENERAL_LOG_FILE"    , "log_file"    , defaults["log_file"])
+    args.log_format   = args.log_format   if args.log_format   is not None else get_env_or_config_option(conf, "GENERAL_LOG_FORMAT"  , "log_format"  , defaults["log_format"])
+    args.log_level    = args.log_level    if args.log_level    is not None else get_env_or_config_option(conf, "GENERAL_LOG_LEVEL"   , "log_level"   , defaults["log_level"])
+    args.log_filemode = args.log_filemode if args.log_filemode is not None else get_env_or_config_option(conf, "GENERAL_LOG_FILEMODE", "log_filemode", defaults["log_filemode"])
     logging.basicConfig(
         level=logging.getLevelName(args.log_level),
         format=args.log_format,
