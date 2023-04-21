@@ -6,102 +6,98 @@ on:
   workflow_dispatch:
 
 jobs:
-  get_version:
+  push_to_Docker_Hub_amd64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Get version
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: get version
         run: |
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-        shell: bash
-  push_to_Docker_Hub_amd64:
-      needs: get_version
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Repo
-          uses: actions/checkout@v3
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v2
-        - name: Login to DockerHub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
-        - name: Build and push
-          uses: docker/build-push-action@v4
-          with:
-            context: ./
-            file: ./Dockerfile
-            push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
-            platforms: linux/amd64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
+          platforms: linux/amd64
   push_to_Docker_Hub_arm64:
-        needs: get_version
-        runs-on: ubuntu-latest
-        steps:
-          - name: checkout repo
-            uses: actions/checkout@v3
-          - name: Set up QEMU
-            uses: docker/setup-qemu-action@v2
-          - name: Set up Docker Buildx
-            uses: docker/setup-buildx-action@v2
-          - name: Login to DockerHub
-            uses: docker/login-action@v2
-            with:
-              username: ${{ secrets.DOCKERHUB_USERNAME }}
-              password: ${{ secrets.DOCKERHUB_TOKEN }}
-          - name: Build and push
-            uses: docker/build-push-action@v4
-            with:
-              context: ./
-              file: ./Dockerfile
-              push: true
-              tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64
-              platforms: linux/arm64
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: get version
+        run: |
+          VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64
+          platforms: linux/arm64
   push_to_Docker_Hub_arm_v7:
-      needs: get_version
-      runs-on: ubuntu-latest
-      steps:
-        - name: checkout repo
-          uses: actions/checkout@v3
-        - name: get version
-          run: |
-            VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
-            echo "VERSION=${VERSION}" >> $GITHUB_ENV
-        - name: Set up QEMU
-          uses: docker/setup-qemu-action@v2
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v2
-        - name: Login to DockerHub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
-        - name: Build and push
-          uses: docker/build-push-action@v4
-          with:
-            context: ./
-            file: ./Dockerfile
-            push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7
-            platforms: linux/arm/v7
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: get version
+        run: |
+          VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7,${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7
+          platforms: linux/arm/v7
   merge_tags:
-      needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_arm_v7, push_to_Docker_Hub_amd64]
-      runs-on: ubuntu-latest
-      steps:
-        - name: checkout repo
-          uses: actions/checkout@v3
-        - name: get version
-          run: |
-            VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
-            echo "VERSION=${VERSION}" >> $GITHUB_ENV
-        - name: Login to DockerHub
-          uses: docker/login-action@v2
-          with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
-        - name: merge into latest
-          run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
-        - name: merge into versio
-          run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
+    needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_arm_v7, push_to_Docker_Hub_amd64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: get version
+        run: |
+          VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: merge into latest
+        run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
+      - name: merge into versio
+        run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
