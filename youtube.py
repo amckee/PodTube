@@ -1,14 +1,22 @@
 import datetime, logging, os, psutil, time
-import misaka, glob, requests
+import glob, requests
 
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError, NoOptionError
 from pathlib import Path
 from feedgen.feed import FeedGenerator
 from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
+import utils
+
 key = None
+cleanup_period = None
+convert_video_period = None
+audio_expiration_time = None
+start_cleanup_size_threshold = None
+stop_cleanup_size_threshold = None
+autoload_newest_audio = None
 
 video_links = {}
 playlist_feed = {}
@@ -19,22 +27,28 @@ __version__ = 'v2023.04.21.5'
 conversion_queue = {}
 converting_lock = Semaphore(2)
 
-def get_youtube_api_key():
-    yt_key = os.getenv("YT_API_KEY")
-    if yt_key is not None:
-        logging.info("Got YT API key from ENV: %s" % yt_key)
-    else:
-        conf = ConfigParser()
-        conf.read('config.ini')
-        yt_key = conf.get('youtube','api_key')
-        logging.info("Got YT API key from config file: %s" % yt_key)
-    return yt_key
+def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+    return utils.get_env_or_config_option(conf, env_name, config_name, "youtube", default_value=default_value)
 
-def init():
-    global key
-    if key is not None:
-        return
-    key = get_youtube_api_key()
+def init(conf: ConfigParser):
+    global key, cleanup_period, convert_video_period, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
+    key                          = str(get_env_or_config_option(conf, "YT_API_KEY"                     , "api_key"                     , default_value=None))
+    cleanup_period               = int(get_env_or_config_option(conf, "YT_CLEANUP_PERIOD"              , "cleanup_period"              , default_value=600000)) # 10 minutes
+    convert_video_period         = int(get_env_or_config_option(conf, "YT_CONVERT_VIDEO_PERIOD"        , "convert_video_period"        , default_value=1000)) # 1 second
+    audio_expiration_time        = int(get_env_or_config_option(conf, "YT_AUDIO_EXPIRATION_TIME"       , "audio_expiration_time"       , default_value=259200000)) # 3 days
+    start_cleanup_size_threshold = int(get_env_or_config_option(conf, "YT_START_CLEANUP_SIZE_THRESHOLD", "start_cleanup_size_threshold", default_value=536870912)) # 0.5GiB
+    stop_cleanup_size_threshold  = int(get_env_or_config_option(conf, "YT_STOP_CLEANUP_SIZE_THRESHOLD" , "stop_cleanup_size_threshold" , default_value=16106127360)) # 15GiB
+    autoload_newest_audio        =     get_env_or_config_option(conf, "YT_AUTOLOAD_NEWEST_AUDIO"       , "autoload_newest_audio"       , default_value=True)
+    autoload_newest_audio = utils.convert_to_bool(autoload_newest_audio)
+    
+    ioloop.PeriodicCallback(
+        callback=cleanup,
+        callback_time=cleanup_period
+    ).start()
+    ioloop.PeriodicCallback(
+        callback=convert_videos,
+        callback_time=convert_video_period
+    ).start()
 
 def set_key( new_key=None ):
     global key
@@ -42,9 +56,7 @@ def set_key( new_key=None ):
 
 def cleanup():
     # Globals
-    global video_links
-    global playlist_feed
-    global channel_feed
+    global video_links, playlist_feed, channel_feed, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
     current_time = datetime.datetime.now()
     # Video Links
     video_links_length = len(video_links)
@@ -86,17 +98,17 @@ def cleanup():
             channel_feed_length
         )
     # Space Check
-    expired_time = time.time() - 259200 # 3 days in seconds
+    expired_time = time.time() - (audio_expiration_time / 1000)
     size_clean = False
-    for f in sorted(glob.glob('./audio/*{mp3,mp3.tmp}'), key=lambda a_file: os.path.getctime(a_file)):
+    for f in sorted(glob.glob('./audio/*mp3'), key=lambda a_file: os.path.getctime(a_file)):
         size = psutil.disk_usage('./audio')
         ctime = os.path.getctime(f)
-        size_clean = size_clean or size.free < 536870912
+        size_clean = size_clean or size.free < start_cleanup_size_threshold
         time_clean = ctime <= expired_time
         if time_clean or size_clean:
             os.remove(f)
             logging.info('Deleted %s', f)
-            if not time_clean and size_clean and size.free > 16106127360:
+            if not time_clean and size_clean and size.free > stop_cleanup_size_threshold:
                 break
         else:
             break
@@ -180,9 +192,7 @@ def get_youtube_url(video):
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
-    def initialize(self, video_handler_path: str, audio_handler_path: str, autoload_newest_audio: bool = True):
-        init()
-        self.autoload_newest_audio = autoload_newest_audio
+    def initialize(self, video_handler_path: str, audio_handler_path: str):
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
 
@@ -361,7 +371,9 @@ class ChannelHandler(web.RequestHandler):
             channel_feed[chan] = feed
         self.write(feed['feed'])
         self.finish()
-        if not self.autoload_newest_audio:
+
+        global autoload_newest_audio
+        if not autoload_newest_audio:
             return
         video = video['video']
         mp3_file = 'audio/{}.mp3'.format(video)
@@ -372,9 +384,7 @@ class ChannelHandler(web.RequestHandler):
             }
 
 class PlaylistHandler(web.RequestHandler):
-    def initialize(self, video_handler_path: str, audio_handler_path: str, autoload_newest_audio: bool = True):
-        init()
-        self.autoload_newest_audio = autoload_newest_audio
+    def initialize(self, video_handler_path: str, audio_handler_path: str):
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
 
@@ -527,7 +537,8 @@ class PlaylistHandler(web.RequestHandler):
         playlist_feed[playlist_name] = feed
         self.write(feed['feed'])
         self.finish()
-        if not self.autoload_newest_audio:
+        global autoload_newest_audio
+        if not autoload_newest_audio:
             return
         video = video['video']
         mp3_file = 'audio/{}.mp3'.format(video)
@@ -544,7 +555,6 @@ class VideoHandler(web.RequestHandler):
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
-        init()
         self.disconnected = False
 
     @gen.coroutine
@@ -577,7 +587,7 @@ class AudioHandler(web.RequestHandler):
             self.set_status(422) # Unprocessable Content. E.g. the video is a live stream
             return
         if not os.path.exists(mp3_file):
-            self.set_status(404)
+            self.set_status(404) # An error occurred during the conversion and the file was not created
             return
         request_range = None
         range_header = self.request.headers.get("Range")
@@ -675,16 +685,13 @@ class AudioHandler(web.RequestHandler):
                     return
 
     def on_connection_close(self):
-        logging.info(
-            'Audio: User quit during transcoding (%s)',
-            self.request.remote_ip)
+        logging.warning('Audio: User quit during transcoding (%s)', self.request.remote_ip)
         self.disconnected = True
 
 class UserHandler(web.RequestHandler):
     channels_cache = {}
 
     def initialize(self, channel_handler_path: str):
-        init()
         self.channel_handler_path = channel_handler_path
 
     def get_canonical(self, url):
