@@ -63,16 +63,13 @@ class ChannelHandler(web.RequestHandler):
         ## Make item list from video list
         videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
         for video in videos:
-            try:
-                video.find("span", "video-item--upcoming")
+            if video.find("span", "video-item--upcoming") is not None:
                 logging.info("Found upcoming video, skipping")
-            except:
-                pass
-            try:
-                video.find("span", "video-item--live")
+                continue
+            if video.find("span", "video-item--live") is not None:
                 logging.info("Found live video, skipping")
-            except:
-                pass
+                continue
+
             try:
                 vidduration = video.find('span', 'video-item--duration')['data-value']
             except TypeError:
