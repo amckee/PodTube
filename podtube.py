@@ -11,7 +11,7 @@ import youtube, bitchute, rumble, dailymotion
 from tornado import ioloop, web
 
 # BE SURE TO UPDATE THIS - ci/cd depends on it
-__version__ = 'v2023.04.21.7'
+__version__ = 'v2023.04.21.8'
 
 class FileHandler(web.RequestHandler):
     def get(self):

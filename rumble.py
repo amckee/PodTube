@@ -6,15 +6,13 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-__version__ = 'v2023.04.12.05'
-
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
     def get(self, channel):
-        logging.info( "Got channel: %s" % channel )
+        logging.debug( "Got channel: %s" % channel )
 
         url = "https://rumble.com/c/%s" % channel
         logging.info( "Handling Rumble URL: %s" % url )
@@ -43,7 +41,7 @@ class ChannelHandler(web.RequestHandler):
         try:
             feed.title( bs.find("div", "listing-header--title").find("h1").text )
         except:
-            logging.info("Failed to pull channel title. Using provided channel instead")
+            logging.error("Failed to pull channel title. Using provided channel instead")
             feed.title( channel )
 
         try:
@@ -51,7 +49,7 @@ class ChannelHandler(web.RequestHandler):
             if thumb is not None:
                 feed.image( thumb )
         except:
-            logging.info("Channel thumbnail not found")
+            logging.error("Channel thumbnail not found")
         feed.description( "--" )
         feed.id( channel )
         feed.link(
@@ -110,7 +108,7 @@ class UserHandler(web.RequestHandler):
         self.set_header('Accept-Ranges', 'bytes')
     
     def get(self, user):
-        logging.info( "Got user: %s" % user )
+        logging.debug( "Got user: %s" % user )
 
         url = "https://rumble.com/user/%s" % user
         logging.info( "Handling Rumble URL: %s" % url )
@@ -129,7 +127,7 @@ class UserHandler(web.RequestHandler):
         return html
     
     def generate_rss( self, user ):
-        logging.info("User: %s" % user)
+        logging.debug("User: %s" % user)
         bs = BeautifulSoup( self.get_html( user ), 'lxml' )
 
         feed = FeedGenerator()
@@ -218,7 +216,7 @@ class CategoryHandler(web.RequestHandler):
         try:
             feed.title( "Rumble: %s" % bs.find("div", "listing-header--title").text )
         except:
-            logging.info( "Failed to pull category name" )
+            logging.error( "Failed to pull category name" )
             feed.title( category )
         
         feed.description( "New videos from Rumble's %s category page" % category )
@@ -269,7 +267,7 @@ class CategoryHandler(web.RequestHandler):
 
 def get_rumble_url( video, bitrate=None ):
     url = "https://rumble.com/%s" % video
-    logging.info( "Getting URL: %s" % url )
+    logging.debug( "Getting URL: %s" % url )
 
     ## first, we need to get the embed url from the data set
     r = requests.get( url )
@@ -300,12 +298,10 @@ def get_rumble_url( video, bitrate=None ):
     if regexSearch is not None:
         try:
             vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}},', '}}}]') )
-            logging.info("First json regex worked")
+            logging.debug("First json regex worked")
         except:
-            logging.info("Trying second json regex")
+            logging.debug("Trying second json regex")
             vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}}},', '}}}]') )
-    else:
-        logging.info( "Failed first json regex parse. Trying the second" )
 
     if bitrate is not None:
         # find the requested bitrate video
@@ -331,7 +327,7 @@ def get_rumble_url( video, bitrate=None ):
                     break
 
     if vidurl is None:
-        logging.info( "Failed to get video: %s" % video)
+        logging.error( "Failed to get video: %s" % video)
     else:
         logging.info( "Got the video URL: %s" % vidurl )
 
@@ -339,7 +335,7 @@ def get_rumble_url( video, bitrate=None ):
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.info("Rumble Video: %s" % video)
+        logging.debug("Rumble Video: %s" % video)
         bitrate = None
         if bitrate is not None:
             logging.info("Requesting bitrate: %s" % bitrate)

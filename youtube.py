@@ -173,7 +173,7 @@ def get_youtube_url(video):
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
     yturl = "https://www.youtube.com/watch?v=%s" % video
-    logging.info("Full URL: %s" % yturl)
+    logging.debug("Full URL: %s" % yturl)
     yt = YouTube(yturl)
     logging.debug("Stream count: %s" % len(yt.streams))
     vid = yt.streams.get_highest_resolution().url
@@ -188,7 +188,7 @@ def get_youtube_url(video):
     }
     video_links[video] = link
     logging.info( "video: %s" % video )
-    logging.debug( "vid: %s" % vid )
+    logging.debug( "Youtube video found is: %s" % vid )
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
@@ -327,7 +327,7 @@ class ChannelHandler(web.RequestHandler):
                     chan=snippet['channelTitle']
                 except KeyError:
                     snippet['channelTitle'] = snippet['channelId']
-                    logging.info("Channel title not found")
+                    logging.error("Channel title not found")
                 
                 logging.debug(
                     'ChannelVideo: %s (%s)',
@@ -728,7 +728,7 @@ class UserHandler(web.RequestHandler):
         return channel_token
 
     def get(self, username):
-        logging.info('Handling Youtube channel by name: %s' % username)
+        logging.debug('Handling Youtube channel by name: %s' % username)
         append = None
         append_index = username.find('/')
         if append_index > -1:

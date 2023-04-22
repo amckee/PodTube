@@ -26,7 +26,7 @@ class ChannelHandler(web.RequestHandler):
     def get(self, channel):
         # make/build RSS feed
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
-        logging.info("Handling Bitchute channel: %s" % url)
+        logging.debug("Handling Bitchute channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
         self.write( feed )
