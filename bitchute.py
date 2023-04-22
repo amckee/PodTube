@@ -41,11 +41,21 @@ class ChannelHandler(web.RequestHandler):
 
         r = requests.get( url, headers=heads )
         bs = BeautifulSoup( r.text, "lxml" )
-        html = str(bs.find("div", "container"))
-        return html
+        
+        if r.status_code == 403:
+            logging.error("CloudFlare blocked: %s" % url)
+            self.set_status(403)
+            return r.text
+        else:
+            html = str(bs.find("div", "container"))
+            return html
 
     def generate_rss( self, channel ):
         logging.info("Bitchute URL: %s" % channel)
+        html = self.get_html( channel )
+        if self.get_status() == 403:
+            return "Request responded: 403\r\n\r\n\r\n" + BeautifulSoup(html, 'lxml').get_text().replace('\n\n\n\n\n\n\n', '\n')
+
         bs = BeautifulSoup( self.get_html( channel ) , "lxml" )
 
         feed = FeedGenerator()
