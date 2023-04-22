@@ -3,6 +3,7 @@
 from configparser import ConfigParser
 import glob, logging, os
 from argparse import ArgumentParser
+import sys
 
 import utils
 import misaka
@@ -122,7 +123,7 @@ if __name__ == '__main__':
         conf = ConfigParser(inline_comment_prefixes='#')
         read_ok = conf.read(args.config_file)
         if not read_ok:
-            logging.error("Error reading configuration file: " + args.config_file)
+            print("Error reading configuration file: " + args.config_file, file=sys.stderr, flush=True)
             conf = None
     args.port         = args.port         if args.port         is not None else get_env_or_config_option(conf, "GENERAL_PORT"        , "port"        , defaults["port"])
     args.log_file     = args.log_file     if args.log_file     is not None else get_env_or_config_option(conf, "GENERAL_LOG_FILE"    , "log_file"    , defaults["log_file"])

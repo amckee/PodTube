@@ -3,6 +3,7 @@ import logging
 import os
 from asyncio import sleep
 from datetime import datetime
+import sys
 from urllib.parse import urlencode
 
 from pytube import YouTube
@@ -47,23 +48,37 @@ def convert_to_bool(input) -> bool:
         return input.lower() in ['1', 'true', 't', 'yes', 'y', 'on']
     return bool(input)
 
-
-
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, config_section: str, conf_raw: bool = True, default_value = None):
     value = os.getenv(env_name)
     if value is not None:
-        logging.info("Got '%s' from ENV: %s", env_name, value)
+        log_or_print("Got '%s' from ENV: %s", env_name, value)
     elif conf is not None:
         try:
             value = conf.get(config_section, config_name, raw=conf_raw)
-            logging.info("Got '%s:%s' from config file: %s", config_section, config_name, value)
+            log_or_print("Got '%s:%s' from config file: %s", config_section, config_name, value)
         except Exception as e:
             value = default_value
             if isinstance(e, (NoSectionError, NoOptionError)):
-                logging.info("No configuration '%s:%s'. Default value is used: %s", config_section, config_name, value)
+                log_or_print("No configuration '%s:%s'. Default value is used: %s", config_section, config_name, value)
             else:
-                logging.error("An error occurred while reading configuration '%s:%s'. Default value is used: %s. Error: %s", config_section, config_name, value, e)
+                error_or_print("An error occurred while reading configuration '%s:%s'. Default value is used: %s. Error: %s", config_section, config_name, value, e)
     else:
         value = default_value
-        logging.info("No configuration file or environment variable '%s'. Default value is used: %s", env_name, value)
+        log_or_print("No configuration file or environment variable '%s'. Default value is used: %s", env_name, value)
     return value
+
+
+def is_log_inited():
+    return len(logging.root.handlers) > 0
+
+def log_or_print(msg: str, *args, **kwargs):
+    if is_log_inited():
+        logging.info(msg, *args, **kwargs)
+    else:
+        print(msg % args, file=sys.stdout, flush=True)
+
+def error_or_print(msg: str, *args, **kwargs):
+    if is_log_inited():
+        logging.error(msg, *args, **kwargs)
+    else:
+        print(msg % args, file=sys.stderr, flush=True)
