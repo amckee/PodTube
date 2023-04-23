@@ -10,7 +10,7 @@ import misaka
 import youtube, bitchute, rumble, dailymotion
 from tornado import ioloop, web
 
-# BE SURE TO UPDATE THIS - ci/cd depends on it
+# Handled by git pre-commit hook
 __version__ = 'v2023.04.22.1'
 
 class FileHandler(web.RequestHandler):
