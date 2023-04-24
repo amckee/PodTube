@@ -2,11 +2,11 @@
 
 FROM python:3.10
 
-LABEL net.ftawesome.home.version='2023.04.23.1'
+LABEL net.ftawesome.home.version='2023.04.23.2'
 
 WORKDIR /opt/
 
 ADD ./ /opt/
-RUN pip install misaka psutil requests requests_html feedgen pytube3 tornado urllib3 pytz
+RUN pip install misaka psutil requests feedgen pytube tornado urllib3 pytz bs4
 
 CMD python /opt/podtube.py

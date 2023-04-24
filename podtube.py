@@ -10,8 +10,8 @@ import misaka
 import youtube, bitchute, rumble, dailymotion
 from tornado import ioloop, web
 
-# Handled by git pre-commit hook
-__version__ = '2023.04.23.1'
+# Handled automatically by git pre-commit hook
+__version__ = '2023.04.23.2'
 
 class FileHandler(web.RequestHandler):
     def get(self):

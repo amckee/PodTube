@@ -1,5 +1,5 @@
 import datetime, logging, os, psutil, time
-import glob, requests
+import glob, requests, utils
 
 from configparser import ConfigParser, NoSectionError, NoOptionError
 from pathlib import Path
@@ -7,8 +7,6 @@ from feedgen.feed import FeedGenerator
 from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
-
-import utils
 
 key = None
 cleanup_period = None
@@ -174,10 +172,11 @@ def get_youtube_url(video):
         return video_links[video]['url']
     yturl = "https://www.youtube.com/watch?v=%s" % video
     logging.debug("Full URL: %s" % yturl)
+
     yt = YouTube(yturl)
     logging.debug("Stream count: %s" % len(yt.streams))
     vid = yt.streams.get_highest_resolution().url
-    logging.debug("Video is now: %s" % vid)
+    logging.debug("Highest resultion URL: %s: " % vid)
 
     parts = {
         part.split('=')[0]: part.split('=')[1]
@@ -187,10 +186,8 @@ def get_youtube_url(video):
         'url': vid,
         'expire': datetime.datetime.fromtimestamp(int(parts['expire']))
     }
-    video_links[video] = link
-    logging.info( "Video: %s" % video )
-    logging.info( "Returning URL: %s" % link['url'] )
 
+    video_links[video] = link
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
@@ -552,8 +549,10 @@ class PlaylistHandler(web.RequestHandler):
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.info('Video: %s', video)
-        self.redirect(get_youtube_url(video))
+        logging.info('Getting Video: %s', video)
+        yt_url = get_youtube_url(video)
+        logging.debug("Got video URL: %s" % yt_url)
+        self.redirect( yt_url )
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
