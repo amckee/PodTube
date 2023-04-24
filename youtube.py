@@ -177,7 +177,8 @@ def get_youtube_url(video):
     yt = YouTube(yturl)
     logging.debug("Stream count: %s" % len(yt.streams))
     vid = yt.streams.get_highest_resolution().url
-    logging.debug("vid is now: %s" % vid)
+    logging.debug("Video is now: %s" % vid)
+
     parts = {
         part.split('=')[0]: part.split('=')[1]
         for part in vid.split('?')[-1].split('&')
@@ -187,8 +188,9 @@ def get_youtube_url(video):
         'expire': datetime.datetime.fromtimestamp(int(parts['expire']))
     }
     video_links[video] = link
-    logging.info( "video: %s" % video )
-    logging.debug( "Youtube video found is: %s" % vid )
+    logging.info( "Video: %s" % video )
+    logging.info( "Returning URL: %s" % link['url'] )
+
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
