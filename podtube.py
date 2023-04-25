@@ -47,6 +47,7 @@ def make_app(config: ConfigParser):
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
         (r'/youtube/user/@(.*)', youtube.UserHandler, {'channel_handler_path': '/youtube/channel/'}),
+        (r'/youtube/cache/', youtube.ClearCacheHandler),
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
         (r'/rumble/video/(.*)', rumble.VideoHandler),

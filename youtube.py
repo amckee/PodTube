@@ -21,6 +21,7 @@ autoload_newest_audio = None
 video_links = {}
 playlist_feed = {}
 channel_feed = {}
+channel_name_to_id = {}
 
 __version__ = 'v2023.04.21.5'
 
@@ -56,7 +57,7 @@ def set_key( new_key=None ):
 
 def cleanup():
     # Globals
-    global video_links, playlist_feed, channel_feed, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
+    global video_links, playlist_feed, channel_name_to_id, channel_feed, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
     current_time = datetime.datetime.now()
     # Video Links
     video_links_length = len(video_links)
@@ -97,6 +98,20 @@ def cleanup():
             'Cleaned %s items from channel feeds',
             channel_feed_length
         )
+    # Channel Feeds
+    channel_name_to_id_length = len(channel_name_to_id)
+    channel_name_to_id = {
+        channel:
+            info
+            for channel, info in channel_name_to_id.items()
+            if info['expire'] > current_time
+    }
+    channel_name_to_id_length -= len(channel_name_to_id)
+    if channel_name_to_id_length:
+        logging.info(
+            'Cleaned %s items from channel name map',
+            channel_name_to_id_length
+        )
     # Space Check
     expired_time = time.time() - (audio_expiration_time / 1000)
     size_clean = False
@@ -106,8 +121,11 @@ def cleanup():
         size_clean = size_clean or size.free < start_cleanup_size_threshold
         time_clean = ctime <= expired_time
         if time_clean or size_clean:
-            os.remove(f)
-            logging.info('Deleted %s', f)
+            try:
+                os.remove(f)
+                logging.info('Deleted %s', f)
+            except Exception as ex:
+                logging.error('Error remove file %s: %s', f, ex)
             if not time_clean and size_clean and size.free > stop_cleanup_size_threshold:
                 break
         else:
@@ -689,8 +707,6 @@ class AudioHandler(web.RequestHandler):
         self.disconnected = True
 
 class UserHandler(web.RequestHandler):
-    channels_cache = {}
-
     def initialize(self, channel_handler_path: str):
         self.channel_handler_path = channel_handler_path
 
@@ -715,8 +731,9 @@ class UserHandler(web.RequestHandler):
         return None
 
     def get_channel_token(self, username: str) -> str:
-        if username in UserHandler.channels_cache:
-            return UserHandler.channels_cache[username]
+        global channel_name_to_id
+        if username in channel_name_to_id and channel_name_to_id[username]['expire'] > datetime.datetime.now():
+            return channel_name_to_id[username]['id']
         yt_url = f"https://www.youtube.com/@{username}/about"
         canon_url = self.get_canonical( yt_url )
         logging.debug('Canonical url: %s' % canon_url)
@@ -724,7 +741,10 @@ class UserHandler(web.RequestHandler):
             return None
         token_index = canon_url.rfind("/") + 1
         channel_token = canon_url[token_index:]
-        UserHandler.channels_cache[username] = channel_token
+        channel_name_to_id[username] = {
+            'id': channel_token,
+            'expire': datetime.datetime.now() + datetime.timedelta(hours=24)
+        }
         return channel_token
 
     def get(self, username):
@@ -743,5 +763,148 @@ class UserHandler(web.RequestHandler):
             if append is not None:
                 selfurl += append
             logging.info('Redirect to %s' % selfurl)
-            self.redirect( selfurl, permanent = True )
+            self.redirect( selfurl, permanent = False )
         return None
+
+class ClearCacheHandler(web.RequestHandler):
+    ALL = "ALL"
+    NONE = "NONE"
+
+    VIDEO_FILES = "VIDEO_FILES"
+    VIDEO_LINKS = "VIDEO_LINKS"
+    PLAYLIST_FEED = "PLAYLIST_FEED"
+    CHANNEL_FEED = "CHANNEL_FEED"
+    CHANNEL_NAME_TO_ID = "CHANNEL_NAME_TO_ID"
+
+    def post(self):
+        self.get()
+
+    def get(self):
+        global video_links, playlist_feed, channel_feed, channel_name_to_id
+
+        videoFile = self.get_argument(ClearCacheHandler.VIDEO_FILES, ClearCacheHandler.NONE, True)
+        videoLink = self.get_argument(ClearCacheHandler.VIDEO_LINKS, ClearCacheHandler.NONE, True)
+        playlistFeed = self.get_argument(ClearCacheHandler.PLAYLIST_FEED, ClearCacheHandler.NONE, True)
+        channelFeed = self.get_argument(ClearCacheHandler.CHANNEL_FEED, ClearCacheHandler.NONE, True)
+        channelNameToId = self.get_argument(ClearCacheHandler.CHANNEL_NAME_TO_ID, ClearCacheHandler.NONE, True)
+
+        if any(element != ClearCacheHandler.NONE for element in [videoFile, videoLink, playlistFeed, channelFeed, channelNameToId]):
+            logging.info('Force clear cache started (%s)', self.request.remote_ip)
+
+        if (videoFile == ClearCacheHandler.ALL):
+            for f in glob.glob('./audio/*mp3'):
+                try:
+                    os.remove(f)
+                    logging.info('Deleted %s', f)
+                except Exception as e:
+                    logging.error('Error remove file %s: %s', f, e)
+        elif videoFile != ClearCacheHandler.NONE:
+            f = f"./audio/{videoFile}"
+            try:
+                os.remove(f)
+                logging.info('Deleted %s', f)
+            except Exception as e:
+                logging.error('Error remove file %s: %s', f, e)
+
+        if (videoLink == ClearCacheHandler.ALL):
+            video_links_length = len(video_links)
+            video_links = {}
+            logging.info('Cleaned %s items from video list', video_links_length)
+        elif videoLink != ClearCacheHandler.NONE:
+            if videoLink in video_links:
+                del video_links[videoLink]
+                logging.info('Cleaned 1 items from video list')
+
+        if (playlistFeed == ClearCacheHandler.ALL):
+            playlist_feed_length = len(playlist_feed)
+            playlist_feed = {}
+            logging.info('Cleaned %s items from playlist feeds', playlist_feed_length)
+        elif playlistFeed != ClearCacheHandler.NONE:
+            if playlistFeed in playlist_feed:
+                del playlist_feed[playlistFeed]
+                logging.info('Cleaned 1 items from playlist feeds')
+
+        if (channelFeed == ClearCacheHandler.ALL):
+            channel_feed_length = len(channel_feed)
+            channel_feed = {}
+            logging.info('Cleaned %s items from channel feeds', channel_feed_length)
+        elif channelFeed != ClearCacheHandler.NONE:
+            if channelFeed in channel_feed:
+                del channel_feed[channelFeed]
+                logging.info('Cleaned 1 items from channel feeds')
+
+        if (channelNameToId == ClearCacheHandler.ALL):
+            channel_name_to_id_length = len(channel_name_to_id)
+            channel_name_to_id = {}
+            logging.info('Cleaned %s items from channel name map', channel_name_to_id_length)
+        elif channelNameToId != ClearCacheHandler.NONE:
+            if channelNameToId in channel_name_to_id:
+                del channel_name_to_id[channelNameToId]
+                logging.info('Cleaned 1 items from channel name map')
+
+        self.write(f'<html><head><title>PodTube (v{__version__}) cache</title>')
+        self.write('<link rel="shortcut icon" href="favicon.ico">')
+        self.write('</head><body>')
+
+        self.write("<form method='POST'>")
+        self.write(f"<label for='{ClearCacheHandler.VIDEO_LINKS}'>Cached video links: </label>")
+        self.write(f"<select id='{ClearCacheHandler.VIDEO_LINKS}' name='{ClearCacheHandler.VIDEO_LINKS}'>")
+        self.write(f"<option value='{ClearCacheHandler.NONE}' selected>{ClearCacheHandler.NONE}</option>")
+        self.write(f"<option value='{ClearCacheHandler.ALL}'>{ClearCacheHandler.ALL}</option>")
+        for video, info in video_links.items():
+            self.write(f"<option value='{video}'>{video}</option>")
+        self.write("</select>")
+        self.write("<br/><br/>")
+
+        self.write(f"<label for='{ClearCacheHandler.PLAYLIST_FEED}'>Cached playlist feed: </label>")
+        self.write(f"<select id='{ClearCacheHandler.PLAYLIST_FEED}' name='{ClearCacheHandler.PLAYLIST_FEED}'>")
+        self.write(f"<option value='{ClearCacheHandler.NONE}' selected>{ClearCacheHandler.NONE}</option>")
+        self.write(f"<option value='{ClearCacheHandler.ALL}'>{ClearCacheHandler.ALL}</option>")
+        for playlist, info in playlist_feed.items():
+            self.write(f"<option value='{playlist}'>{playlist}</option>")
+        self.write("</select>")
+        self.write("<br/><br/>")
+
+        self.write(f"<label for='{ClearCacheHandler.CHANNEL_FEED}'>Cached channel feed: </label>")
+        self.write(f"<select id='{ClearCacheHandler.CHANNEL_FEED}' name='{ClearCacheHandler.CHANNEL_FEED}'>")
+        self.write(f"<option value='{ClearCacheHandler.NONE}' selected>{ClearCacheHandler.NONE}</option>")
+        self.write(f"<option value='{ClearCacheHandler.ALL}'>{ClearCacheHandler.ALL}</option>")
+        for channel, info in channel_feed.items():
+            self.write(f"<option value='{channel}'>{channel}</option>")
+        self.write("</select>")
+        self.write("<br/><br/>")
+
+        self.write(f"<label for='{ClearCacheHandler.CHANNEL_NAME_TO_ID}'>Cached channel name to id: </label>")
+        self.write(f"<select id='{ClearCacheHandler.CHANNEL_NAME_TO_ID}' name='{ClearCacheHandler.CHANNEL_NAME_TO_ID}'>")
+        self.write(f"<option value='{ClearCacheHandler.NONE}' selected>{ClearCacheHandler.NONE}</option>")
+        self.write(f"<option value='{ClearCacheHandler.ALL}'>{ClearCacheHandler.ALL}</option>")
+        for channel, info in channel_name_to_id.items():
+            self.write(f"<option value='{channel}'>@{channel}</option>")
+        self.write("</select>")
+        self.write("<br/><br/>")
+
+        self.write(f"<label for='{ClearCacheHandler.VIDEO_FILES}'>Cached video files: </label>")
+        self.write(f"<select id='{ClearCacheHandler.VIDEO_FILES}' name='{ClearCacheHandler.VIDEO_FILES}'>")
+        self.write(f"<option value='{ClearCacheHandler.NONE}' selected>{ClearCacheHandler.NONE}</option>")
+        self.write(f"<option value='{ClearCacheHandler.ALL}'>{ClearCacheHandler.ALL}</option>")
+        for f in sorted(glob.glob('./audio/*mp3'), key=lambda a_file: os.path.getctime(a_file)):
+            size = os.path.getsize(f)
+            if size > 10**12:
+                size = str(size // 2**40) + 'TiB'
+            elif size > 10**9:
+                size = str(size // 2**30) + 'GiB'
+            elif size > 10**6:
+                size = str(size // 2**20) + 'MiB'
+            elif size > 10**3:
+                size = str(size // 2**10) + 'KiB'
+            else:
+                size = str(size) + 'B'
+            f = os.path.basename(f)
+            self.write(f"<option value='{f}'>{f} ({size})</option>")
+        self.write("</select>")
+        self.write("<br/><br/>")
+        self.write("<input type='submit'>")
+        self.write("</form>")
+        self.write("<br/>")
+        
+        self.write('</body></html>')
