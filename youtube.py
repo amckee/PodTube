@@ -846,6 +846,8 @@ class ClearCacheHandler(web.RequestHandler):
         self.write('<link rel="shortcut icon" href="favicon.ico">')
         self.write('</head><body>')
 
+        self.write(f"<label>Clear cache</label>")
+        self.write("<br/><br/>")
         self.write("<form method='POST'>")
         self.write(f"<label for='{ClearCacheHandler.VIDEO_LINKS}'>Cached video links: </label>")
         self.write(f"<select id='{ClearCacheHandler.VIDEO_LINKS}' name='{ClearCacheHandler.VIDEO_LINKS}'>")
@@ -903,7 +905,7 @@ class ClearCacheHandler(web.RequestHandler):
             self.write(f"<option value='{f}'>{f} ({size})</option>")
         self.write("</select>")
         self.write("<br/><br/>")
-        self.write("<input type='submit'>")
+        self.write("<input type='submit' value='CLEAR SELECTED CACHE' />")
         self.write("</form>")
         self.write("<br/>")
         
