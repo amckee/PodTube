@@ -11,7 +11,7 @@ import youtube, bitchute, rumble, dailymotion
 from tornado import ioloop, web
 
 # Handled automatically by git pre-commit hook
-__version__ = '2023.04.23.2'
+__version__ = '2023.04.23.4'
 
 class FileHandler(web.RequestHandler):
     def get(self):
