@@ -272,13 +272,17 @@ def get_rumble_url( video, bitrate=None ):
     ## first, we need to get the embed url from the data set
     r = requests.get( url )
 
-    # check for errors from Rumble directly
+    # Check for errors from Rumble directly
     if r.status_code == 410:
+        return url
+    elif r.status_code == 403:
         return url
 
     bs = BeautifulSoup( r.text, 'lxml' )
+
     import json
     dat=json.loads(bs.find("script", type="application/ld+json").string)
+
     vidurl = dat[0]['embedUrl']
     logging.info( "Found embedded URL: %s" % vidurl )
 
