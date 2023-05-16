@@ -191,11 +191,18 @@ def get_youtube_url(video):
     yturl = "https://www.youtube.com/watch?v=%s" % video
     logging.debug("Full URL: %s" % yturl)
 
-    yt = YouTube(yturl)
+    yt = None
+
+    try:
+        yt = YouTube(yturl)
+    except Exception as e:
+        logging.error( "Error returned by Youtube: %s - %s" % (e.status, e.msg) )
+        return e
+
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
-    logging.debug("Stream count: %s" % len(yt.streams))
+    logging.debug( "Stream count: %s" % len(yt.streams) )
     vid = yt.streams.get_highest_resolution().url
-    logging.debug("Highest resultion URL: %s: " % vid)
+    logging.debug( "Highest resultion URL: %s: " % vid )
 
     parts = {
         part.split('=')[0]: part.split('=')[1]
@@ -570,6 +577,9 @@ class VideoHandler(web.RequestHandler):
     def get(self, video):
         logging.info('Getting Video: %s', video)
         yt_url = get_youtube_url(video)
+        if type(yt_url) != str:
+            self.write( "Error returned by Youtube: %s - %s" % (yt_url.code, yt_url.msg) )
+
         logging.debug("Got video URL: %s" % yt_url)
         self.redirect( yt_url )
 
