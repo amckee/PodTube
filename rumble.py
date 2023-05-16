@@ -306,11 +306,11 @@ def get_rumble_url( video, bitrate=None ):
     regexSearch = re.search( r'"ua":\{"mp4":.+\}\}\},', el )
     if regexSearch is not None:
         try:
-            vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}},', '}}}]') )
+            vids = json.loads( regexSearch.group(0).split('"timeline"')[0].replace(r'"ua":{"mp4":', '[').replace(r'}}},', '}}}]') )
             logging.debug("First json regex worked")
         except:
             logging.debug("Trying second json regex")
-            vids = json.loads( regexSearch.group(0).replace(r'"ua":{"mp4":', '[').split('"timeline"')[0].replace(r'}}}},', '}}}]') )
+            vids = json.loads( regexSearch.group(0).split('"timeline"')[0].replace(r'"ua":{"mp4":', '[').replace(r'}}}},', '}}}]') )
 
     if bitrate is not None:
         # find the requested bitrate video
