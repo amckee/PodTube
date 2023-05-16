@@ -1,4 +1,4 @@
-# [PodTube](https://github.com/aquacash5/PodTube) (v2023.04.12.05)
+# [PodTube](https://github.com/aquacash5/PodTube)
 
 This is an extended functionality fork of a python application for converting Youtube, Rumble and Bitchute channels into podcast-friendly RSS feeds.
 
