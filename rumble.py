@@ -39,13 +39,13 @@ class ChannelHandler(web.RequestHandler):
 
         ## Get Channel Info
         try:
-            feed.title( bs.find("div", "listing-header--title").find("h1").text )
+            feed.title( bs.find("div", "channel-header--title").find("h1").text )
         except:
             logging.error("Failed to pull channel title. Using provided channel instead")
             feed.title( channel )
 
         try:
-            thumb = bs.find("img", "listing-header--thumb")['src']
+            thumb = bs.find("img", "channel-header--thumb")['src']
             if thumb is not None:
                 feed.image( thumb )
         except:
@@ -274,8 +274,10 @@ def get_rumble_url( video, bitrate=None ):
 
     # Check for errors from Rumble directly
     if r.status_code == 410:
+        logging.error( "Rumble returned 410: Not found" )
         return url
     elif r.status_code == 403:
+        logging.error( "Rumble returned 403: Forbidden" )
         return url
 
     bs = BeautifulSoup( r.text, 'lxml' )
