@@ -6,7 +6,10 @@ from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
+headers = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.104 Safari/537.36' }
+
 class ChannelHandler(web.RequestHandler):
+
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
@@ -25,7 +28,7 @@ class ChannelHandler(web.RequestHandler):
     def get_html( self, channel ):
         url = "https://rumble.com/c/%s" % channel
         logging.info("Rumble URL: %s" % url)
-        r = requests.get( url )
+        r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, "lxml" )
         html = str( bs.find("main") )
         return html
@@ -121,7 +124,7 @@ class UserHandler(web.RequestHandler):
     def get_html( self, user ):
         url = "https://rumble.com/user/%s" % user
         logging.info("Rumble URL: %s" % url)
-        r = requests.get( url )
+        r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, 'lxml' )
         html = str( bs.find("main") )
         return html
@@ -201,7 +204,7 @@ class CategoryHandler(web.RequestHandler):
     def get_html(self, category):
         url = "https://rumble.com/category/%s" % category
         logging.info("Rumble URL: %s" % url)
-        r = requests.get( url )
+        r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, 'lxml' )
         html = str( bs.find("main") )
         return html
@@ -270,7 +273,8 @@ def get_rumble_url( video, bitrate=None ):
     logging.debug( "Getting URL: %s" % url )
 
     ## first, we need to get the embed url from the data set
-    r = requests.get( url )
+    headers = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.104 Safari/537.36' }
+    r = requests.get( url, headers=headers )
 
     # Check for errors from Rumble directly
     if r.status_code == 410:
@@ -294,7 +298,7 @@ def get_rumble_url( video, bitrate=None ):
     ## tricky stuff that will likely break a lot
     ## but we need to parse out values within a javascript function
     ## and remove escape backslashes
-    r = requests.get( vidurl )
+    r = requests.get( vidurl, headers=headers )
     bs = BeautifulSoup( r.text, 'lxml' )
     el = bs.find("script").string
 
