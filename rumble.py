@@ -202,7 +202,7 @@ class CategoryHandler(web.RequestHandler):
         self.finish()
 
     def get_html(self, category):
-        url = "https://rumble.com/category/%s" % category
+        url = "https://rumble.com/category/%s/recorded" % category
         logging.info("Rumble URL: %s" % url)
         r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, 'lxml' )
@@ -217,7 +217,7 @@ class CategoryHandler(web.RequestHandler):
         feed.load_extension('podcast')
 
         try:
-            feed.title( "Rumble: %s" % bs.find("div", "listing-header--title").text )
+            feed.title( "Rumble: %s" % bs.find("h1", "header__heading").text.strip() )
         except:
             logging.error( "Failed to pull category name" )
             feed.title( category )
@@ -231,36 +231,37 @@ class CategoryHandler(web.RequestHandler):
         feed.language('en')
 
         ## Assemble RSS items list
-        videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
+        videos = bs.find("ol", "recordedstreams").find_all("li")
         for video in videos:
             ## Check for and skip live videos and upcomming videos
             if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):  ##['data-value'] == "LIVE":
                 continue
 
             item = feed.add_entry()
-            item.title( video.find("h3", "video-item--title").text )
-            item.description( video.find("div", "ellipsis-1").text )
+            item.title( video.find("h3", "videostream__title").text.strip() )
+            item.description( video.find("span", "channel__name").text.strip() )
             
-            lnk = video.find("a", "video-item--a")
+            lnk = video.find("a", "videostream__link")
             vid = lnk['href']
             link = f'http://{self.request.host}/rumble/video' + vid
-            icon = video.find( "img", "video-item--img" )['src']
+            icon = video.find( "img", "videostream__image" )['src']
             item.podcast.itunes_image( icon )
             item.link(
                 href = link,
                 title = item.title()
             )
 
-            dateformat = "%Y-%m-%d %H:%M:%S"
-            viddatetime = video.find("time", "video-item--meta")['datetime']
-            viddate = viddatetime.split('T')[0]
-            vidtime = viddatetime.split('T')[1]
-            vidtime = vidtime.split('-')[0]
-            vidpubdate = viddate + " " + vidtime
-            date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
-            item.pubDate( date )
+            ## No longer given, leaving this code here in case in comes back in the future
+            # dateformat = "%Y-%m-%d %H:%M:%S"
+            # viddatetime = video.find("time", "video-item--meta")['datetime']
+            # viddate = viddatetime.split('T')[0]
+            # vidtime = viddatetime.split('T')[1]
+            # vidtime = vidtime.split('-')[0]
+            # vidpubdate = viddate + " " + vidtime
+            # date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
+            # item.pubDate( date )
 
-            item.podcast.itunes_duration( video.find('span', 'video-item--duration')['data-value'] )
+            # item.podcast.itunes_duration( video.find('span', 'video-item--duration')['data-value'] )
 
             item.enclosure(
                 url = link,
