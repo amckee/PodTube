@@ -240,7 +240,7 @@ class CategoryHandler(web.RequestHandler):
             item = feed.add_entry()
             item.title( video.find("h3", "videostream__title").text.strip() )
             item.description( video.find("span", "channel__name").text.strip() )
-            
+
             lnk = video.find("a", "videostream__link")
             vid = lnk['href']
             link = f'http://{self.request.host}/rumble/video' + vid
@@ -307,40 +307,50 @@ def get_rumble_url( video, bitrate=None ):
     vidurl = None
     preparsedvids = None
 
-    ## need multiple regexes to find usable json
+    # Using regex, grab the entire json data set from the javascript function.
+    # Note: Expect this to break as Rumble makes changes.
+    regexSearch = re.search( r';f\.f\["%s"\]=.*:d\(\)\}' % embedVidID, el ).group().replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r',loaded:d()', '' )
 
-    # regex #1
-    regexSearch = re.search( r'"ua":\{"mp4":.+\}\}\},', el )
     if regexSearch is not None:
-        try:
-            vids = json.loads( regexSearch.group(0).split('"timeline"')[0].replace(r'"ua":{"mp4":', '[').replace(r'}}},', '}}}]') )
-            logging.debug("First json regex worked")
-        except:
-            logging.debug("Trying second json regex")
-            vids = json.loads( regexSearch.group(0).split('"timeline"')[0].replace(r'"ua":{"mp4":', '[').replace(r'}}}},', '}}}]') )
+        vidInfo = json.loads( regexSearch )
+        if 'u' in vidInfo:
+            if 'mp4' in vidInfo['u']:
+                if 'url' in vidInfo['u']['mp4']:
+                    vidurl = vidInfo['u']['mp4']['url']
 
-    if bitrate is not None:
-        # find the requested bitrate video
-        for vid in vids[0]:
-            ## handle bitrate requests
-            if vid == bitrate:
-                vidurl = vid['url']
-                break
-    else:
-        # find a default bitrate video. 240p first, 360p second, anything at all third
-        for res in ('240', '360'):
-            vid = vids[0].get(res)
-            if vid is not None:
-                logging.info("Grabbing %sp video" % res)
-                vidurl = vid['url']
-                break
-        
         if vidurl is None:
-            for vid in vids[0]:
-                if vids[0][vid]['url'] is not None:
-                    logging.info("Grabbing %sp format" % vid)
-                    vidurl = vids[0][vid]['url']
+            if 'ua' in vidInfo:
+                if 'mp4' in vidInfo['ua']:
+                    if '360' in vidInfo['ua']['mp4']:
+                        vidurl = vidInfo['ua']['mp4']['360']['url']
+                    elif '480' in vidInfo['ua']['mp4']:
+                        vidurl = vidInfo['ua']['mp4']['480']['url']
+
+    ## Fallback method, in case the above code failed to find anything
+    if vidurl is None:
+        logging.info("Using fallback Rumble 'geturl' method")
+        if bitrate is not None:
+            # find the requested bitrate video
+            for vid in vidInfo[0]:
+                ## handle bitrate requests
+                if vid == bitrate:
+                    vidurl = vid['url']
                     break
+        else:
+            # find a default bitrate video. 240p first, 360p second, anything at all third
+            for res in ('240', '360'):
+                vid = vidInfo[0].get(res)
+                if vid is not None:
+                    logging.info("Grabbing %sp video" % res)
+                    vidurl = vid['url']
+                    break
+            
+            if vidurl is None:
+                for vid in vidInfo[0]:
+                    if vidInfo[0][vid]['url'] is not None:
+                        logging.info("Grabbing %sp format" % vid)
+                        vidurl = vidInfo[0][vid]['url']
+                        break
 
     if vidurl is None:
         logging.error( "Failed to get video: %s" % video)
