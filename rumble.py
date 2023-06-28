@@ -313,12 +313,6 @@ def get_rumble_url( video, bitrate=None ):
 
     if regexSearch is not None:
         vidInfo = json.loads( regexSearch )
-        if 'u' in vidInfo:
-            if 'mp4' in vidInfo['u']:
-                if 'url' in vidInfo['u']['mp4']:
-                    logging.info('Found generic mp4')
-                    vidurl = vidInfo['u']['mp4']['url']
-
         if vidurl is None:
             if 'ua' in vidInfo:
                 if 'mp4' in vidInfo['ua']:
@@ -328,6 +322,12 @@ def get_rumble_url( video, bitrate=None ):
                     elif '480' in vidInfo['ua']['mp4']:
                         logging.info('Found 480p video')
                         vidurl = vidInfo['ua']['mp4']['480']['url']
+
+        if 'u' in vidInfo:
+            if 'mp4' in vidInfo['u']:
+                if 'url' in vidInfo['u']['mp4']:
+                    logging.info('Found generic mp4')
+                    vidurl = vidInfo['u']['mp4']['url']
 
     ## Fallback method, in case the above code failed to find anything
     if vidurl is None:
