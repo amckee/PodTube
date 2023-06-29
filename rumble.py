@@ -308,8 +308,15 @@ def get_rumble_url( video, bitrate=None ):
     preparsedvids = None
 
     # Using regex, grab the entire json data set from the javascript function.
-    # Note: Expect this to break as Rumble makes changes.
-    regexSearch = re.search( r';f\.f\["%s"\]=.*:d\(\)\}' % embedVidID, el ).group().replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r',loaded:d()', '' )
+    # Note: Expect this to break as Rumble makes more changes.
+    regexSearch = None
+    try:
+        regexSearch = re.search( r';f\.f\["%s"\]=.*:[a|d]\(\)\}' % embedVidID, el ).group().replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' )
+    except:
+        pass
+
+    # try: #again
+    #     regexSearch = re.search( )
 
     if regexSearch is not None:
         vidInfo = json.loads( regexSearch )
