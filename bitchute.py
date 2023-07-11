@@ -119,5 +119,5 @@ def get_bitchute_url(video):
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.info("Video: %s" % video)
+        logging.info("Bitchute Video: %s" % video)
         self.redirect( get_bitchute_url(video) )

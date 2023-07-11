@@ -103,5 +103,5 @@ def get_video_url( video ):
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.info("Video: %s" % video)
+        logging.info("DailyMotion Video: %s" % video)
         self.redirect( get_video_url(video) )
