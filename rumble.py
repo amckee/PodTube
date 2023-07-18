@@ -140,10 +140,14 @@ class UserHandler(web.RequestHandler):
         try:
             feed.title( bs.find("div", "listing-header--title").find("h1").text )
         except:
-            logging.info("Failed to pull channel title. Using provided channel instead")
+            logging.info("Failed to pull user title.")
             feed.title( channel )
 
-        feed.image( bs.find("img", "listing-header--thumb")['src'] )
+        try:
+            feed.image( bs.find("img", "listing-header--thumb")['src'] )
+        except:
+            logging.info("Failed to pull user thumbnail.")
+
         feed.description( "--" )
         feed.id( user )
         feed.link(
