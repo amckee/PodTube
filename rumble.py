@@ -321,6 +321,7 @@ def get_rumble_url( video, bitrate=None ):
 
     # try: #again
     #     regexSearch = re.search( )
+    vidInfo = None
 
     if regexSearch is not None:
         vidInfo = json.loads( regexSearch )
