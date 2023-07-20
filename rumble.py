@@ -315,7 +315,7 @@ def get_rumble_url( video, bitrate=None ):
     # Note: Expect this to break as Rumble makes more changes.
     regexSearch = None
     try:
-        regexSearch = re.search( r';[h|f]\.f\["%s"\]=.*:[a|d]\(\)\}' % embedVidID, el ).group().replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r';h.f["%s"]=' % embedVidID, '' ).replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' )
+        regexSearch = re.search( r';[f|h|v]\.f\["%s"\]=.*:[a|d]\(\)\}' % embedVidID, el ).group().replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r';h.f["%s"]=' % embedVidID, '' ).replace( r';v.f["%s"]=' % embedVidID, '').replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' )
     except:
         pass
 
