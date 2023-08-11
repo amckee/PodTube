@@ -325,21 +325,23 @@ def get_rumble_url( video, bitrate=None ):
 
     if regexSearch is not None:
         vidInfo = json.loads( regexSearch )
-        if 'ua' in vidInfo:
-            if 'mp4' in vidInfo['ua']:
-                if '360' in vidInfo['ua']['mp4']:
-                    logging.info('Found 360p video')
-                    vidurl = vidInfo['ua']['mp4']['360']['url']
-                elif '480' in vidInfo['ua']['mp4']:
-                    logging.info('Found 480p video')
-                    vidurl = vidInfo['ua']['mp4']['480']['url']
+        logging.debug("Successfully parsed JSON data")
+        for thing in ('ua', 'u'):
+            if thing in vidInfo:
+                if 'mp4' in vidInfo[thing]:
+                    if '360' in vidInfo[thing]['mp4']:
+                        logging.info('Found 360p video')
+                        vidurl = vidInfo[thing]['mp4']['360']['url']
+                    elif '480' in vidInfo[thing]['mp4']:
+                        logging.info('Found 480p video')
+                        vidurl = vidInfo[thing]['mp4']['480']['url']
 
-        if vidurl is None:
-            if 'u' in vidInfo:
-                if 'mp4' in vidInfo['u']:
-                    if 'url' in vidInfo['u']['mp4']:
-                        logging.info('Found generic mp4')
-                        vidurl = vidInfo['u']['mp4']['url']
+        # if vidurl is None:
+        #     if 'u' in vidInfo:
+        #         if 'mp4' in vidInfo['u']:
+        #             if 'url' in vidInfo['u']['mp4']:
+        #                 logging.info('Found generic mp4')
+        #                 vidurl = vidInfo['u']['mp4']['url']
 
     ## Fallback method, in case the above code failed to find anything
     if vidurl is None:
@@ -353,13 +355,16 @@ def get_rumble_url( video, bitrate=None ):
                     break
         else:
             # find a default bitrate video. 240p first, 360p second, anything at all third
-            for res in ('240', '360'):
-                vid = vidInfo[0].get(res)
-                if vid is not None:
-                    logging.info("Grabbing %sp video" % res)
-                    vidurl = vid['url']
-                    break
-            
+            for res in ('240', '360', '480'):
+                if res in vidInfo[0]:
+                    vid = vidInfo[0].get(res)
+                    if vid is not None:
+                        logging.info("Grabbing %sp video" % res)
+                        vidurl = vid['url']
+                        break
+                else:
+                    logging.info("%s not found in video JSON" % res)
+                
             if vidurl is None:
                 for vid in vidInfo[0]:
                     if vidInfo[0][vid]['url'] is not None:
