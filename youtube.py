@@ -319,7 +319,9 @@ class ChannelHandler(web.RequestHandler):
         fg.podcast.itunes_category(cat='Technology')
         fg.updated(str(datetime.datetime.utcnow()) + 'Z')
         response = {'nextPageToken': ''}
+        pageCount = itemCount = 0
         while 'nextPageToken' in response.keys():
+            pageCount += 1
             next_page = response['nextPageToken']
             payload = {
                 'part': 'snippet,contentDetails',
@@ -347,7 +349,7 @@ class ChannelHandler(web.RequestHandler):
                 if 'private' in snippet['title'].lower():
                     continue
                 current_video = item['contentDetails']['upload']['videoId']
-                
+
                 try:
                     chan=snippet['channelTitle']
                 except KeyError:
@@ -360,6 +362,7 @@ class ChannelHandler(web.RequestHandler):
                     snippet['title']
                 )
                 fe = fg.add_entry()
+                itemCount += 1
                 fe.title(snippet['title'])
                 fe.id(current_video)
                 icon = max(
@@ -394,6 +397,9 @@ class ChannelHandler(web.RequestHandler):
         }
         for chan in channel_name:
             channel_feed[chan] = feed
+        
+        logging.info("Got %s videos from %s pages" % (itemCount, pageCount))
+
         self.write(feed['feed'])
         self.finish()
 
