@@ -1,18 +1,18 @@
---- cipher.py	2023-08-11 13:29:26.042837163 -0500
-+++ cipher.new	2023-08-11 13:45:39.144252832 -0500
+--- /home/adam/.local/lib/python3.10/site-packages/pytube/cipher.py	2023-08-16 20:42:27.850505987 -0500
++++ /home/adam/.local/lib/python3.10/site-packages/pytube/cipher.new.py	2023-08-16 20:43:45.744861879 -0500
 @@ -27,7 +27,7 @@
  class Cipher:
      def __init__(self, js: str):
          self.transform_plan: List[str] = get_transform_plan(js)
 -        var_regex = re.compile(r"^\w+\W")
-+        var_regex = re.compile(r"^(\$)?\w+\W")
++        var_regex = re.compile(r"^\$?\w+\W")
          var_match = var_regex.search(self.transform_plan[0])
          if not var_match:
              raise RegexMatchError(
 @@ -270,7 +270,7 @@
          # Bpa.length || iha("")) }};
          # In the above case, `iha` is the relevant function name
-         r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&.*?\|\|\s*([a-z]+)',
+         r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
 -        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
 +        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)',
      ]
