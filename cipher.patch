@@ -1,5 +1,5 @@
 --- /home/adam/.local/lib/python3.10/site-packages/pytube/cipher.py	2023-08-16 20:42:27.850505987 -0500
-+++ /home/adam/.local/lib/python3.10/site-packages/pytube/cipher.new.py	2023-08-16 20:43:45.744861879 -0500
++++ cipher.new.py	2023-08-16 20:43:45.744861879 -0500
 @@ -27,7 +27,7 @@
  class Cipher:
      def __init__(self, js: str):
