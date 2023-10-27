@@ -47,7 +47,7 @@ class ChannelHandler(web.RequestHandler):
             self.set_status(403)
             return r.text
         else:
-            html = str(bs.find("div", "container"))
+            html = str(bs.find("div", "container-fluid"))
             return html
 
     def generate_rss( self, channel ):
@@ -66,7 +66,7 @@ class ChannelHandler(web.RequestHandler):
         feed.title( el.find("p", "name").text )
         #feed.description( el.find("div", "channel-videos-text").text )
         feed.image( el.find("div", "image-container").find("img")['data-src'] )
-        feed.description( "Bitchute user name: %s" % el.find("p", "owner").text )
+        feed.description( "Bitchute user name: %s" % el.find("p", "name").text )
         feed.id( el.find("a", "spa")['href'] )
         feedurl = "https://bitchute.com" + el.find("a", "spa")['href']
         feed.link( {'href': feedurl, 'rel': 'self'} )

@@ -583,11 +583,12 @@ class VideoHandler(web.RequestHandler):
     def get(self, video):
         logging.info('Getting Video: %s', video)
         yt_url = get_youtube_url(video)
-        if type(yt_url) != str:
+        if type(yt_url) == str:
+            logging.debug("Got video URL: %s" % yt_url)
+            self.redirect( yt_url )
+        else:
             self.write( "Error returned by Youtube: %s - %s" % (yt_url.code, yt_url.msg) )
-
-        logging.debug("Got video URL: %s" % yt_url)
-        self.redirect( yt_url )
+            self.write( "<br/>https://www.youtube.com/watch?v=%s" % video ) #this helps with debugging
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
