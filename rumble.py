@@ -235,11 +235,12 @@ class CategoryHandler(web.RequestHandler):
         feed.language('en')
 
         ## Assemble RSS items list
-        videos = bs.find("ol", "recordedstreams").find_all("li")
+        videos = bs.find("ol", "recordedstreams").find_all("div", "videostream")
         for video in videos:
-            ## Check for and skip live videos and upcomming videos
-            if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):  ##['data-value'] == "LIVE":
-                continue
+            ## Check for and skip live videos and upcomming videos.
+            ## Disabled to test if this is needed.
+            #if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):  ##['data-value'] == "LIVE":
+            #    continue
 
             item = feed.add_entry()
             item.title( video.find("h3", "videostream__title").text.strip() )
