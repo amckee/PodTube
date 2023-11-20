@@ -242,8 +242,10 @@ class ChannelHandler(web.RequestHandler):
         video = None
         calls = 0
         payload = {
-            'part': 'snippet',
+            'part': 'snippet,contentDetails',
             'maxResults': 1,
+            'fields': 'items',
+            'order': 'date',
             'id': channel[0],
             'key': key
         }
@@ -254,8 +256,10 @@ class ChannelHandler(web.RequestHandler):
         calls += 1
         if request.status_code != 200:
             payload = {
-                'part': 'snippet',
+                'part': 'snippet,contentDetails',
                 'maxResults': 1,
+                'fields': 'items',
+                'order': 'date',
                 'forUsername': channel[0],
                 'key': key
             }
@@ -275,7 +279,10 @@ class ChannelHandler(web.RequestHandler):
         if channel[0] != channel_data['id']:
             channel[0] = channel_data['id']
             channel_name.append('/'.join(channel))
+        #get upload playlist
+        channel_upload_list = channel_data['contentDetails']['relatedPlaylists']['uploads']
         channel_data = channel_data['snippet']
+        
         fg = FeedGenerator()
         fg.load_extension('podcast')
         fg.generator(
@@ -326,12 +333,12 @@ class ChannelHandler(web.RequestHandler):
             payload = {
                 'part': 'snippet,contentDetails',
                 'maxResults': 50,
-                'channelId': channel[0],
+                'playlistId': channel_upload_list,
                 'key': key,
                 'pageToken': next_page
             }
             request = requests.get(
-                'https://www.googleapis.com/youtube/v3/activities',
+                'https://www.googleapis.com/youtube/v3/playlistItems',
                 params=payload
             )
             calls += 1
@@ -344,11 +351,9 @@ class ChannelHandler(web.RequestHandler):
                 return
             for item in response['items']:
                 snippet = item['snippet']
-                if snippet['type'] != 'upload':
-                    continue
                 if 'private' in snippet['title'].lower():
                     continue
-                current_video = item['contentDetails']['upload']['videoId']
+                current_video = item['contentDetails']['videoId']
 
                 try:
                     chan=snippet['channelTitle']
