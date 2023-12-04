@@ -19,7 +19,7 @@ class ChannelHandler(web.RequestHandler):
 
         url = "https://rumble.com/c/%s" % channel
         logging.info( "Handling Rumble URL: %s" % url )
-        
+
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
         self.write( feed )
@@ -109,7 +109,7 @@ class UserHandler(web.RequestHandler):
     def head(self, user):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
-    
+
     def get(self, user):
         logging.debug( "Got user: %s" % user )
 
@@ -120,7 +120,7 @@ class UserHandler(web.RequestHandler):
         feed = self.generate_rss( user )
         self.write( feed )
         self.finish()
-    
+
     def get_html( self, user ):
         url = "https://rumble.com/user/%s" % user
         logging.info("Rumble URL: %s" % url)
@@ -128,7 +128,7 @@ class UserHandler(web.RequestHandler):
         bs = BeautifulSoup( r.text, 'lxml' )
         html = str( bs.find("main") )
         return html
-    
+
     def generate_rss( self, user ):
         logging.debug("User: %s" % user)
         bs = BeautifulSoup( self.get_html( user ), 'lxml' )
@@ -225,7 +225,7 @@ class CategoryHandler(web.RequestHandler):
         except:
             logging.error( "Failed to pull category name" )
             feed.title( category )
-        
+
         feed.description( "New videos from Rumble's %s category page" % category )
         feed.id( category )
         feed.link(
@@ -235,7 +235,7 @@ class CategoryHandler(web.RequestHandler):
         feed.language('en')
 
         ## Assemble RSS items list
-        videos = bs.find("ol", "recordedstreams").find_all("div", "videostream")
+        videos = bs.find("ol", "thumbnail__grid").find_all("div", "videostream")
         for video in videos:
             ## Check for and skip live videos and upcomming videos.
             ## Disabled to test if this is needed.
@@ -243,13 +243,13 @@ class CategoryHandler(web.RequestHandler):
             #    continue
 
             item = feed.add_entry()
-            item.title( video.find("h3", "videostream__title").text.strip() )
+            item.title( video.find("h3", "thumbnail__title").text.strip() )
             item.description( video.find("span", "channel__name").text.strip() )
 
             lnk = video.find("a", "videostream__link")
             vid = lnk['href']
             link = f'http://{self.request.host}/rumble/video' + vid
-            icon = video.find( "img", "videostream__image" )['src']
+            icon = video.find( "img", "thumbnail__image" )['src']
             item.podcast.itunes_image( icon )
             item.link(
                 href = link,
@@ -365,7 +365,7 @@ def get_rumble_url( video, bitrate=None ):
                         break
                 else:
                     logging.info("%s not found in video JSON" % res)
-                
+
             if vidurl is None:
                 for vid in vidInfo[0]:
                     if vidInfo[0][vid]['url'] is not None:
