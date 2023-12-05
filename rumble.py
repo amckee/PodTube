@@ -48,7 +48,7 @@ class ChannelHandler(web.RequestHandler):
             feed.title( channel )
 
         try:
-            thumb = bs.find("img", "channel-header--thumb")['src']
+            thumb = bs.find("img", "channel-header--img")['src']
             if thumb is not None:
                 feed.image( thumb )
         except:
