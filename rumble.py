@@ -26,7 +26,7 @@ class ChannelHandler(web.RequestHandler):
         self.finish()
 
     def get_html( self, channel ):
-        url = "https://rumble.com/c/%s" % channel
+        url = "https://rumble.com/c/%s/videos" % channel
         logging.info("Rumble URL: %s" % url)
         r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, "lxml" )
@@ -62,7 +62,7 @@ class ChannelHandler(web.RequestHandler):
         feed.language('en')
 
         ## Make item list from video list
-        videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
+        videos = bs.find("ol", "thumbnail__grid").find_all("div", "videostream")
         for video in videos:
             if video.find("span", "video-item--upcoming") is not None:
                 logging.info("Found upcoming video, skipping")
@@ -72,16 +72,15 @@ class ChannelHandler(web.RequestHandler):
                 continue
 
             try:
-                vidduration = video.find('span', 'video-item--duration')['data-value']
+                vidduration = video.find('div', 'videostream__info').text.strip()
             except TypeError:
                 logging.warning("Failed to get duration; likely a live video, skipping")
                 continue
 
             item = feed.add_entry()
-            item.title( video.find("h3", "video-item--title").text )
-            item.description( "--" )
-            lnk = video.find("a", "video-item--a")
-            vid = lnk['href']
+            item.title( video.find("h3", "thumbnail__title").text.strip() )
+            item.description = video.find("div", "videostream__description").text.strip()
+            vid = video.find("a", "videostream__link")['href']
             link = f'http://{self.request.host}/rumble/video' + vid
             item.link(
                 href = link,
@@ -89,7 +88,7 @@ class ChannelHandler(web.RequestHandler):
             )
 
             dateformat = "%Y-%m-%d %H:%M:%S"
-            viddatetime = video.find("time", "video-item--meta")['datetime']
+            viddatetime = video.find("time", "videostream__time")['datetime']
             viddate = viddatetime.split('T')[0]
             vidtime = viddatetime.split('T')[1]
             vidtime = vidtime.split('-')[0]
