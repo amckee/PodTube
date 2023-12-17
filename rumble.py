@@ -17,7 +17,7 @@ class ChannelHandler(web.RequestHandler):
     def get(self, channel):
         logging.debug( "Got channel: %s" % channel )
 
-        url = "https://rumble.com/c/%s" % channel
+        url = "https://rumble.com/c/%s/videos" % channel
         logging.info( "Handling Rumble URL: %s" % url )
 
         self.set_header('Content-type', 'application/rss+xml')
