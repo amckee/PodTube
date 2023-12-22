@@ -158,6 +158,13 @@ class UserHandler(web.RequestHandler):
         ## Assemble RSS items list
         videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
         for video in videos:
+            if video.find("span", "video-item--upcoming") is not None:
+                logging.info("Found upcoming video, skipping")
+                continue
+            if video.find("span", "video-item--live") is not None:
+                logging.info("Found live video, skipping")
+                continue
+
             item = feed.add_entry()
             item.title( video.find("h3", "video-item--title").text )
             item.description( video.find("a", {'rel': "author"}).text )
