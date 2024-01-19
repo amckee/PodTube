@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import logging, requests
 import datetime, pytz
+import dateutil
 
 from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
@@ -71,12 +72,7 @@ class ChannelHandler(web.RequestHandler):
                 logging.info("Found live video, skipping")
                 continue
 
-            try:
-                vidduration = video.find('div', 'videostream__info').text.strip()
-            except TypeError:
-                logging.warning("Failed to get duration; likely a live video, skipping")
-                continue
-
+            ## Gather channel information
             item = feed.add_entry()
             item.title( video.find("h3", "thumbnail__title").text.strip() )
             item.description = video.find("div", "videostream__description").text.strip()
@@ -86,17 +82,15 @@ class ChannelHandler(web.RequestHandler):
                 href = link,
                 title = item.title()
             )
+            try:
+                vidduration = video.find('div', 'videostream__status--duration').text.strip()
+                item.podcast.itunes_duration( vidduration )
+            except TypeError:
+                logging.warning("Failed to get duration; likely a live video, skipping")
+                continue
 
-            dateformat = "%Y-%m-%d %H:%M:%S"
             viddatetime = video.find("time", "videostream__time")['datetime']
-            viddate = viddatetime.split('T')[0]
-            vidtime = viddatetime.split('T')[1]
-            vidtime = vidtime.split('-')[0]
-            vidpubdate = viddate + " " + vidtime
-
-            item.podcast.itunes_duration( vidduration )
-
-            date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
+            date = dateutil.parser.parse( viddatetime )
             item.pubDate( date )
             item.enclosure(
                 url = link,
@@ -137,13 +131,13 @@ class UserHandler(web.RequestHandler):
 
         ## Get User/Channel Info
         try:
-            feed.title( bs.find("div", "listing-header--title").find("h1").text )
+            feed.title( bs.find("div", "channel-header--title-wrapper").find("h1").text )
         except:
             logging.info("Failed to pull user title.")
             feed.title( channel )
 
         try:
-            feed.image( bs.find("img", "listing-header--thumb")['src'] )
+            feed.image( bs.find("img", "channel-header--img")['src'] )
         except:
             logging.info("Failed to pull user thumbnail.")
 
@@ -156,7 +150,7 @@ class UserHandler(web.RequestHandler):
         feed.language('en')
 
         ## Assemble RSS items list
-        videos = bs.find("div", "main-and-sidebar").find("ol").find_all("li")
+        videos = bs.find("ol", "thumbnail__grid").find_all("div", "videostream")
         for video in videos:
             if video.find("span", "video-item--upcoming") is not None:
                 logging.info("Found upcoming video, skipping")
@@ -166,28 +160,23 @@ class UserHandler(web.RequestHandler):
                 continue
 
             item = feed.add_entry()
-            item.title( video.find("h3", "video-item--title").text )
-            item.description( video.find("a", {'rel': "author"}).text )
+            item.title( video.find("h3", "thumbnail__title").text )
+            item.description( video.find("div", "videostream__description").text )
 
-            lnk = video.find("a", "video-item--a")
+            lnk = video.find("a", "videostream__link")
             vid = lnk['href']
             link = f'http://{self.request.host}/rumble/video' + vid
-            icon = video.find("img", "video-item--img")['src']
+            icon = video.find("img", "thumbnail__image")['src']
             item.podcast.itunes_image( icon )
             item.link(
                 href = link,
                 title = item.title()
             )
 
-            dateformat = "%Y-%m-%d %H:%M:%S"
-            viddatetime = video.find("time", "video-item--meta")['datetime']
-            viddate = viddatetime.split('T')[0]
-            vidtime = viddatetime.split('T')[1]
-            vidtime = vidtime.split('-')[0]
-            vidpubdate = viddate + " " + vidtime
-            item.podcast.itunes_duration( video.find('span', 'video-item--duration')['data-value'] )
+            item.podcast.itunes_duration( video.find('div', 'videostream__status--duration').text.strip() )
 
-            date = datetime.datetime.strptime( vidpubdate, dateformat ).astimezone( pytz.utc )
+            viddatetime = video.find("time", "videostream__time")['datetime']
+            date = dateutil.parser.parse( viddatetime )
             item.pubDate( date )
             item.enclosure(
                 url = link,
