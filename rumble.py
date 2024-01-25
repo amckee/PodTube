@@ -115,7 +115,7 @@ class UserHandler(web.RequestHandler):
         self.finish()
 
     def get_html( self, user ):
-        url = "https://rumble.com/user/%s" % user
+        url = "https://rumble.com/user/%s/videos" % user
         logging.info("Rumble URL: %s" % url)
         r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, 'lxml' )
