@@ -43,12 +43,17 @@ class ChannelHandler(web.RequestHandler):
 
         ## Get Channel Info
 
-        channel_title = bs.find("div", "channel-header--title").find("h1")
-        if channel_title:
-            feed.title(channel_title.text)
+        channel_title = bs.find("div", "channel-header--title")
+        if channel_title is not None:
+            channel_title = channel_title.find("h1").text
+            if channel_title is not None:
+                feed.title( channel_title )
+            else:
+                logging.error("Failed to pull channel title. Using provided channel instead")
+                feed.title( channel )
         else:
             logging.error("Failed to pull channel title. Using provided channel instead")
-            feed.title(channel)
+            feed.title( channel )
 
         thumb = bs.find("img", "channel-header--img")
         if thumb is not None:
@@ -63,7 +68,6 @@ class ChannelHandler(web.RequestHandler):
             rel = 'self'
         )
         feed.language('en')
-
 
         ## Assemble RSS items list
         videos = bs.find("ol", "thumbnail__grid")
