@@ -64,27 +64,27 @@ class ChannelHandler(web.RequestHandler):
 
         ## gather channel information
         channelbanner = bs.find("div", "channel-banner")
-        if channelbanner is not None:
+        if channelbanner:
             feed.title( channelbanner.find("p", "name").text )
         else:
             logging.error("Failed to pull channel title. Using provided channel instead")
             feed.title( channel )
 
         channelimage = bs.find("div", "image-container")
-        if channelimage is not None:
+        if channelimage:
             feed.image( channelimage.find("img")['data-src'] )
         else:
             logging.error("Failed to pull channel image.")
 
         channeluser = bs.find("p", "name")
-        if channeluser is not None:
+        if channeluser:
             feed.description( "Bitchute user name: %s" % channeluser.text )
         else:
             logging.error("Failed to pull channel user name. Using provided channel instead")
             feed.description( "Bitchute user name: %s" % channel )
 
         channelid = bs.find("a", "spa")
-        if channelid is not None:
+        if channelid:
             feed.id( channelid['href'] )
             feed.link( {'href': channelid['href'], 'rel': 'self'} )
         else:
