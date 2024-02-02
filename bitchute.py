@@ -2,7 +2,9 @@
 
 # basic, standard libs
 import logging
-import requests
+
+# Needed to bypass CloudFlare
+import cloudscraper
 
 # web grabbing and parsing libs
 from bs4 import BeautifulSoup
@@ -16,7 +18,7 @@ import datetime, pytz
 from pytz import timezone
 tz = timezone('US/Central')
 
-__version__ = 'v2022.12.20.1'
+__version__ = 'v2024.02.02.1'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -26,7 +28,6 @@ class ChannelHandler(web.RequestHandler):
     def get(self, channel):
         # make/build RSS feed
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
-        logging.debug("Handling Bitchute channel: %s" % url)
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
         self.write( feed )
@@ -34,81 +35,133 @@ class ChannelHandler(web.RequestHandler):
 
     def get_html( self, channel ):
         url = "https://bitchute.com/channel/%s/?showall=1" % channel
-        logging.info("Bitchute URL: %s" % url)
+        logging.info("Requesting Bitchute URL: %s" % url)
 
         # CloudFlare now blocking requests
-        heads = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.104 Safari/537.36' }
+        heads = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
 
-        r = requests.get( url, headers=heads )
-        bs = BeautifulSoup( r.text, "lxml" )
-        
+        scraper = cloudscraper.create_scraper(browser="chrome")
+        r = scraper.get( url )
+        #r = httpx.get( url, headers=heads, follow_redirects=True )
+        #r = requests.get( url, headers=heads )
+
         if r.status_code == 403:
             logging.error("CloudFlare blocked: %s" % url)
             self.set_status(403)
-            return r.text
-        else:
-            html = str(bs.find("div", "container-fluid"))
-            return html
+        return r.text
 
     def generate_rss( self, channel ):
         logging.info("Bitchute URL: %s" % channel)
         html = self.get_html( channel )
         if self.get_status() == 403:
-            return "Request responded: 403\r\n\r\n\r\n" + BeautifulSoup(html, 'lxml').get_text().replace('\n\n\n\n\n\n\n', '\n')
+            return "Request responded: 403 (likely a CloudFlare block)\r\n\r\n\r\n" + BeautifulSoup(html, 'lxml').get_text().replace('\n\n\n\n\n\n\n', '\n')
 
-        bs = BeautifulSoup( self.get_html( channel ) , "lxml" )
-
+        bs = BeautifulSoup( html, "lxml" )
         feed = FeedGenerator()
+
+        bs = bs.find("div", "container-fluid")
         feed.load_extension('podcast')
 
         ## gather channel information
-        el = bs.find("div", "channel-banner")
-        feed.title( el.find("p", "name").text )
-        #feed.description( el.find("div", "channel-videos-text").text )
-        feed.image( el.find("div", "image-container").find("img")['data-src'] )
-        feed.description( "Bitchute user name: %s" % el.find("p", "name").text )
-        feed.id( el.find("a", "spa")['href'] )
-        feedurl = "https://bitchute.com" + el.find("a", "spa")['href']
-        feed.link( {'href': feedurl, 'rel': 'self'} )
-        #feed.author( el.find("p", "owner").text )
+        channelbanner = bs.find("div", "channel-banner")
+        if channelbanner is not None:
+            feed.title( channelbanner.find("p", "name").text )
+        else:
+            logging.error("Failed to pull channel title. Using provided channel instead")
+            feed.title( channel )
+
+        channelimage = bs.find("div", "image-container")
+        if channelimage is not None:
+            feed.image( channelimage.find("img")['data-src'] )
+        else:
+            logging.error("Failed to pull channel image.")
+
+        channeluser = bs.find("p", "name")
+        if channeluser is not None:
+            feed.description( "Bitchute user name: %s" % channeluser.text )
+        else:
+            logging.error("Failed to pull channel user name. Using provided channel instead")
+            feed.description( "Bitchute user name: %s" % channel )
+
+        channelid = bs.find("a", "spa")
+        if channelid is not None:
+            feed.id( channelid['href'] )
+            feed.link( {'href': channelid['href'], 'rel': 'self'} )
+        else:
+            logging.error("Failed to pull channel ID. Using provided channel instead")
+            feed.id( channel )
+
         feed.language('en')
 
         ## loop through videos build feed item dict
-        vids = bs.find_all("div", "channel-videos-container")
-        vidcount = len( vids )
-        itemcounter = 0
-        for vid in vids:
-            item = feed.add_entry()
-            vidtitle = vid.find("div", "channel-videos-title").text
-            item.title( vidtitle )
-            logging.info( "Found video: %s" % vidtitle )
-            item.description( vid.find("div", "channel-videos-text").text )
+        videos = bs.find_all("div", "channel-videos-container")
+        if videos:
+            vidcount = len( videos )
+            itemcounter = 0
+            for video in videos:
+                item = feed.add_entry()
 
-            ## why does this work fine in youtube.py!?
-            vidimage = vid.find("div", "channel-videos-image").find("img")['data-src']
-            item.podcast.itunes_image( vidimage )
-            item.image = vidimage
+                videotitle = video.find("div", "channel-videos-title")
+                if videotitle:
+                    item.title( videotitle.text )
+                else:
+                    logging.error("Failed to pull video title")
+                    item.title( channel )
 
-            link = vid.find("div", "channel-videos-title").find("a", "spa")['href']
+                videodescription = video.find("div", "channel-videos-text")
+                if videodescription:
+                    item.description( videodescription.text )
+                else:
+                    logging.error("Failed to pull video description")
+                    item.description( channel )
 
-            item.link( 
-                href = f'http://{self.request.host}/bitchute{link}',
-                title = vid.find("div", "channel-videos-title").text
-            )
+                videoimage = video.find("div", "channel-videos-image")
+                if videoimage:
+                    item.podcast.itunes_image( videoimage.find("img")['data-src'] )
+                    item.image = videoimage
+                else:
+                    logging.error("Failed to pull video image")
 
-            viddate = " ".join([vid.find("div", "channel-videos-details").text.strip(), str(itemcounter)])
+                videolink = video.find("div", "channel-videos-title")
+                if videolink:
+                    link = videolink.find("a", "spa")['href']
+                    link = f'http://{self.request.host}/bitchute{link}'
+                else:
+                    logging.error("Failed to pull video link")
+                    link = None
 
-            date = datetime.datetime.strptime(  viddate, "%b %d, %Y %M" ).astimezone( tz )
-            item.pubDate( date )
-            item.enclosure(
-                url = f'http://{self.request.host}/bitchute{link}',
-                type = "video/mp4"
-            )
+                videotitle = video.find("div", "channel-videos-title")
+                if videotitle:
+                    title = videotitle.text
+                else:
+                    logging.error("Failed to pull video title")
+                    title = None
 
-            # span.video-duration
-            item.podcast.itunes_duration( vid.find("span", "video-duration").text )
+                item.link(
+                    href = link,
+                    title = title
+                )
 
-            itemcounter += 1
+                videodate = video.find("div", "channel-videos-details")
+                if videodate:
+                    viddate = " ".join([videodate.text.strip(), str(itemcounter)])
+                    date = datetime.datetime.strptime(  viddate, "%b %d, %Y %M" ).astimezone( tz )
+                    item.pubDate( date )
+                else:
+                    logging.error("Failed to pull video date")
+
+                item.enclosure(
+                    url = f'http://{self.request.host}/bitchute{link}',
+                    type = "video/mp4"
+                )
+
+                videoduration = video.find("span", "video-duration")
+                if videoduration:
+                    item.podcast.itunes_duration( videoduration.text )
+                else:
+                    logging.error("Failed to pull video duration")
+                itemcounter += 1
+
         return feed.rss_str( pretty=True )
 
 def get_bitchute_url(video):

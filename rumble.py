@@ -80,7 +80,7 @@ class ChannelHandler(web.RequestHandler):
             for video in videos:
                 ## Check for and skip live videos and upcomming videos.
                 ## Disabled to test if this is needed.
-                if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):  ##['data-value'] == "LIVE":
+                if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):
                     logging.info("Found live/upcoming video, skipping")
                     continue
 
@@ -171,9 +171,9 @@ class UserHandler(web.RequestHandler):
         feed.load_extension('podcast')
 
         ## Get User/Channel Info
-        chantitle = bs.find("div", "channel-header--title").find("h1")
+        chantitle = bs.find("div", "channel-header--title")
         if chantitle is not None:
-            feed.title( chantitle.text )
+            feed.title( chantitle.find("h1").text )
         else:
             logging.info("Failed to pull user channel title.")
             feed.title( user )
@@ -284,6 +284,7 @@ class CategoryHandler(web.RequestHandler):
     def get_html(self, category):
         url = "https://rumble.com/category/%s/recorded" % category
         logging.info("Rumble URL: %s" % url)
+
         r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, 'lxml' )
         html = str( bs.find("main") )
