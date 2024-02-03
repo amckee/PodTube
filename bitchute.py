@@ -151,6 +151,8 @@ class ChannelHandler(web.RequestHandler):
                 else:
                     logging.error("Failed to pull video date")
 
+                logging.info("video enclosure url is: %s" % f"http://{self.request.host}/bitchute{link}")
+
                 item.enclosure(
                     url = f'http://{self.request.host}/bitchute{link}',
                     type = "video/mp4"
