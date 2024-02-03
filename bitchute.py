@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # basic, standard libs
-import logging
+import logging, requests
 
 # Needed to bypass CloudFlare
 import cloudscraper
