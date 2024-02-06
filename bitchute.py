@@ -167,19 +167,11 @@ class ChannelHandler(web.RequestHandler):
 
 def get_bitchute_url(video_id):
     url = f"https://bitchute.com/video/{video_id}"
-<<<<<<< HEAD
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
     video_element = soup.find("video").find("source")
     video_url = video_element['src']
     return video_url
-=======
-    logging.info("Requesting Bitchute URL: %s" % url)
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    video_source = soup.find("video").find("source")['src']
-    return video_source
->>>>>>> 96000fc409d2ac3fd40ce8a6967ce117ee771a0d
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
