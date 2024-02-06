@@ -229,7 +229,7 @@ class ChannelHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, channel):
         global key
-        maxPages = self.get_argument('max')
+        maxPages = self.get_argument('max', None)
         if maxPages:
             logging.info("Will grab videos from a maximum of %s pages" % maxPages)
 
@@ -334,7 +334,7 @@ class ChannelHandler(web.RequestHandler):
         pageCount = itemCount = 0
         while 'nextPageToken' in response.keys():
             pageCount += 1
-            if pageCount > int(maxPages):
+            if maxPages and pageCount > int(maxPages):
                 logging.info("Reached maximum number of pages. Stopping here.")
                 break
             next_page = response['nextPageToken']
