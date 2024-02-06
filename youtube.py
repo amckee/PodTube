@@ -39,7 +39,7 @@ def init(conf: ConfigParser):
     stop_cleanup_size_threshold  = int(get_env_or_config_option(conf, "YT_STOP_CLEANUP_SIZE_THRESHOLD" , "stop_cleanup_size_threshold" , default_value=16106127360)) # 15GiB
     autoload_newest_audio        =     get_env_or_config_option(conf, "YT_AUTOLOAD_NEWEST_AUDIO"       , "autoload_newest_audio"       , default_value=True)
     autoload_newest_audio = utils.convert_to_bool(autoload_newest_audio)
-    
+
     ioloop.PeriodicCallback(
         callback=cleanup,
         callback_time=cleanup_period
@@ -229,6 +229,10 @@ class ChannelHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, channel):
         global key
+        maxPages = self.get_argument('max')
+        if maxPages:
+            logging.info("Will grab videos from a maximum of %s pages" % maxPages)
+
         channel = channel.split('/')
         if len(channel) < 2:
             channel.append('video')
@@ -282,7 +286,7 @@ class ChannelHandler(web.RequestHandler):
         #get upload playlist
         channel_upload_list = channel_data['contentDetails']['relatedPlaylists']['uploads']
         channel_data = channel_data['snippet']
-        
+
         fg = FeedGenerator()
         fg.load_extension('podcast')
         fg.generator(
@@ -325,10 +329,14 @@ class ChannelHandler(web.RequestHandler):
         fg.podcast.itunes_summary(channel_data['description'] or ' ')
         fg.podcast.itunes_category(cat='Technology')
         fg.updated(str(datetime.datetime.utcnow()) + 'Z')
+
         response = {'nextPageToken': ''}
         pageCount = itemCount = 0
         while 'nextPageToken' in response.keys():
             pageCount += 1
+            if pageCount > int(maxPages):
+                logging.info("Reached maximum number of pages. Stopping here.")
+                break
             next_page = response['nextPageToken']
             payload = {
                 'part': 'snippet,contentDetails',
@@ -360,7 +368,7 @@ class ChannelHandler(web.RequestHandler):
                 except KeyError:
                     snippet['channelTitle'] = snippet['channelId']
                     logging.error("Channel title not found")
-                
+
                 logging.debug(
                     'ChannelVideo: %s (%s)',
                     current_video,
@@ -402,7 +410,7 @@ class ChannelHandler(web.RequestHandler):
         }
         for chan in channel_name:
             channel_feed[chan] = feed
-        
+
         logging.info("Got %s videos from %s pages" % (itemCount, pageCount))
 
         self.write(feed['feed'])
@@ -932,5 +940,5 @@ class ClearCacheHandler(web.RequestHandler):
         self.write("<input type='submit' value='CLEAR SELECTED CACHE' />")
         self.write("</form>")
         self.write("<br/>")
-        
+
         self.write('</body></html>')
