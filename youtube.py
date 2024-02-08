@@ -1,6 +1,16 @@
-import datetime, logging, os, psutil, time
-import glob, requests, utils
-
+"""
+This file contains the implementation of handlers and functions related to interacting with YouTube
+content. It includes classes such as VideoHandler, AudioHandler, ClearCacheHandler, and UserHandler,
+which handle different types of requests related to YouTube content.
+"""
+import datetime
+import logging
+import os
+import psutil
+import time
+import glob
+import requests
+import utils
 from configparser import ConfigParser, NoSectionError, NoOptionError
 from pathlib import Path
 from feedgen.feed import FeedGenerator
@@ -27,9 +37,30 @@ conversion_queue = {}
 converting_lock = Semaphore(2)
 
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+    """
+    Get the value of a configuration option from the given ConfigParser object, either from the environment variables or from the configuration file.
+    
+    Args:
+        conf (ConfigParser): The ConfigParser object containing the configuration options.
+        env_name (str): The name of the environment variable to check for the configuration option.
+        config_name (str): The name of the configuration option in the configuration file.
+        default_value: The default value to return if the configuration option is not found.
+
+    Returns:
+        The value of the configuration option, or the default value if the option is not found.
+    """
     return utils.get_env_or_config_option(conf, env_name, config_name, "youtube", default_value=default_value)
 
 def init(conf: ConfigParser):
+    """
+    Initializes the configuration settings for the system.
+
+    Args:
+        conf (ConfigParser): The configuration parser object.
+
+    Returns:
+        None
+    """
     global key, cleanup_period, convert_video_period, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
     key                          = str(get_env_or_config_option(conf, "YT_API_KEY"                     , "api_key"                     , default_value=None))
     cleanup_period               = int(get_env_or_config_option(conf, "YT_CLEANUP_PERIOD"              , "cleanup_period"              , default_value=600000)) # 10 minutes
@@ -50,10 +81,23 @@ def init(conf: ConfigParser):
     ).start()
 
 def set_key( new_key=None ):
+    """
+    Sets the value of the global variable `key` to the provided `new_key`.
+    
+    :param new_key: A string representing the new value for the `key` variable.
+    :type new_key: str
+    
+    :return: None
+    """
     global key
     key = new_key
 
 def cleanup():
+    """
+    Clean up expired video links, playlist feeds, channel feeds, and channel name map.
+    Delete audio files older than a certain time or when the disk space is low.
+    Logs the items cleaned from each category.
+    """
     # Globals
     global video_links, playlist_feed, channel_name_to_id, channel_feed, audio_expiration_time, start_cleanup_size_threshold, stop_cleanup_size_threshold
     current_time = datetime.datetime.now()
@@ -131,6 +175,12 @@ def cleanup():
 
 @gen.coroutine
 def convert_videos():
+    """
+    Asynchronous function to convert videos. 
+    This function checks the conversion queue for pending videos, selects the next video to convert, 
+    and then initiates the conversion process. 
+    If an error occurs during the conversion, it handles the error and cleans up any temporary files.
+    """
     global conversion_queue
     global converting_lock
     if len(conversion_queue) == 0:
@@ -186,6 +236,15 @@ def convert_videos():
                 logging.error('Error remove temp file: %s', ex2)
 
 def get_youtube_url(video):
+    """
+    Function to get the YouTube URL for a given video.
+
+    Args:
+    - video: The video ID for which the URL is needed.
+
+    Returns:
+    - The YouTube URL for the given video.
+    """
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
     yturl = "https://www.youtube.com/watch?v=%s" % video
@@ -218,16 +277,40 @@ def get_youtube_url(video):
 
 class ChannelHandler(web.RequestHandler):
     def initialize(self, video_handler_path: str, audio_handler_path: str):
+        """
+        Initializes the object with the given video and audio handler paths.
+
+        :param video_handler_path: A string representing the path to the video handler.
+        :param audio_handler_path: A string representing the path to the audio handler.
+        """
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
 
     @gen.coroutine
-    def head(self, channel):
+    def head(self):
+        """
+        Coroutine function to set header values for the specified channel.
+        
+        Args:
+            self: The instance of the class.
+            channel: The channel for which the header values are being set.
+        
+        Returns:
+            None
+        """
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
     @gen.coroutine
     def get(self, channel):
+        """
+        A coroutine function that retrieves videos from a specified YouTube channel and generates an RSS feed. 
+        Parameters:
+            - self: the class instance
+            - channel: the channel from which to retrieve videos
+        Return types:
+            - None
+        """
         global key
         maxPages = self.get_argument('max', None)
         if maxPages:
@@ -429,16 +512,36 @@ class ChannelHandler(web.RequestHandler):
 
 class PlaylistHandler(web.RequestHandler):
     def initialize(self, video_handler_path: str, audio_handler_path: str):
+        """
+        Initialize the class with the provided video and audio handler paths.
+
+        Args:
+            video_handler_path (str): The path to the video handler.
+            audio_handler_path (str): The path to the audio handler.
+        """
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
 
     @gen.coroutine
     def head(self, playlist):
+        """
+        A coroutine function that sets the header for the given playlist.
+
+        Args:
+            self: The instance of the class.
+            playlist: The playlist for which the header is being set.
+        
+        Returns:
+            None
+        """
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
     @gen.coroutine
     def get(self, playlist):
+        """
+        A coroutine function to fetch a playlist and generate an RSS feed based on the playlist content.
+        """
         global key
         playlist = playlist.split('/')
         if len(playlist) < 2:
@@ -594,6 +697,15 @@ class PlaylistHandler(web.RequestHandler):
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
+        """
+        Get the video URL from YouTube using the provided video ID, and handle the redirection or error response accordingly.
+        
+        Parameters:
+            video (str): The ID of the video to retrieve from YouTube.
+        
+        Returns:
+            None
+        """
         logging.info('Getting Video: %s', video)
         yt_url = get_youtube_url(video)
         if type(yt_url) == str:
@@ -605,15 +717,31 @@ class VideoHandler(web.RequestHandler):
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
+        """
+        Initialize the object.
+        """
         self.disconnected = False
 
     @gen.coroutine
     def head(self, audio):
+        """
+        Coroutine function to set headers for audio file response.
+
+        Args:
+            self: The instance of the class.
+            audio: The audio file to be served.
+
+        Returns:
+            None
+        """
         self.set_header('Accept-Ranges', 'bytes')
         self.set_header("Content-Type", "audio/mpeg")
 
     @gen.coroutine
     def get(self, audio):
+        """
+        A coroutine function that handles the GET request for audio files. It checks if the requested audio is available and, if so, streams the audio content to the client. If the audio is not available or an error occurs during the conversion, appropriate status codes are set and returned.
+        """
         logging.info('Audio: %s (%s)', audio, self.request.remote_ip)
         if audio in video_links and 'unavailable' in video_links[audio] and video_links[audio]['unavailable'] == True:
             # logging.info('Audio: %s is not available (%s)', audio, self.request.remote_ip)
@@ -735,14 +863,35 @@ class AudioHandler(web.RequestHandler):
                     return
 
     def on_connection_close(self):
+        """
+        Handle the event when the connection is closed. It sets the 'disconnected' attribute to True.
+        """
         logging.warning('Audio: User quit during transcoding (%s)', self.request.remote_ip)
         self.disconnected = True
 
 class UserHandler(web.RequestHandler):
     def initialize(self, channel_handler_path: str):
+        """
+        Initialize the channel handler with the specified path.
+
+        Args:
+            channel_handler_path (str): The path to the channel handler.
+
+        Returns:
+            None
+        """
         self.channel_handler_path = channel_handler_path
 
     def get_canonical(self, url):
+        """
+        Get the canonical URL from the given input URL.
+
+        Args:
+            url (str): The input URL for which the canonical URL needs to be retrieved.
+
+        Returns:
+            str: The canonical URL if found, otherwise None.
+        """
         logging.info("Getting canonical for %s" % url)
         req = requests.get( url )
         if req.status_code == 200:
@@ -763,6 +912,15 @@ class UserHandler(web.RequestHandler):
         return None
 
     def get_channel_token(self, username: str) -> str:
+        """
+        Get the channel token for the given username.
+
+        Args:
+            username (str): The username for which the channel token is being retrieved.
+
+        Returns:
+            str: The channel token associated with the given username.
+        """
         global channel_name_to_id
         if username in channel_name_to_id and channel_name_to_id[username]['expire'] > datetime.datetime.now():
             return channel_name_to_id[username]['id']
@@ -780,6 +938,15 @@ class UserHandler(web.RequestHandler):
         return channel_token
 
     def get(self, username):
+        """
+        A method to handle a Youtube channel by name and redirect to the corresponding URL.
+        
+        Args:
+            username (str): The username of the Youtube channel.
+        
+        Returns:
+            None
+        """
         logging.debug('Handling Youtube channel by name: %s' % username)
         append = None
         append_index = username.find('/')
@@ -809,9 +976,15 @@ class ClearCacheHandler(web.RequestHandler):
     CHANNEL_NAME_TO_ID = "CHANNEL_NAME_TO_ID"
 
     def post(self):
+        """
+        A description of the entire function, its parameters, and its return types.
+        """
         self.get()
 
     def get(self):
+        """
+        A function to handle clearing the cache for various video and playlist items.
+        """
         global video_links, playlist_feed, channel_feed, channel_name_to_id
 
         videoFile = self.get_argument(ClearCacheHandler.VIDEO_FILES, ClearCacheHandler.NONE, True)
