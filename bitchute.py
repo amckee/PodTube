@@ -26,7 +26,7 @@ __version__ = 'v2024.02.02.1'
 class ChannelHandler(web.RequestHandler):
     """
     Set the response headers for the specified channel.
-    
+
     :param channel: The channel for which the headers are being set.
     :return: None
     """
@@ -196,9 +196,9 @@ class ChannelHandler(web.RequestHandler):
                     type = "video/mp4"
                 )
 
-                videoduration = video.find("span", "video-duration")
-                if videoduration:
-                    item.podcast.itunes_duration( videoduration.text )
+                element = video.find("span", "video-duration")
+                if element:
+                    item.podcast.itunes_duration( element.text )
                 else:
                     logging.error("Failed to pull video duration")
                 itemcounter += 1
@@ -208,10 +208,10 @@ class ChannelHandler(web.RequestHandler):
 def get_bitchute_url(video_id):
     """
     Function to retrieve the Bitchute video URL for a given video ID.
-    
+
     Parameters:
     - video_id: str, the ID of the video
-    
+
     Returns:
     - str, the URL of the video source
     """
@@ -227,10 +227,10 @@ class VideoHandler(web.RequestHandler):
     def get(self, video):
         """
         Get the Bitchute video and redirect to the Bitchute URL.
-        
+
         Args:
             video: The Bitchute video to retrieve.
-        
+
         Returns:
             None
         """
