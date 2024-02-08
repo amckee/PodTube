@@ -1,14 +1,19 @@
 #!/usr/bin/python3
 
 from configparser import ConfigParser
-import glob, logging, os
+import glob
+import logging
+import os
 from argparse import ArgumentParser
 import sys
 
-import utils
-import misaka
-import youtube, bitchute, rumble, dailymotion
 from tornado import ioloop, web
+import misaka
+import utils
+import youtube
+import bitchute
+import rumble
+import dailymotion
 
 # Handled automatically by git pre-commit hook
 __version__ = '2024.02.07.3'
