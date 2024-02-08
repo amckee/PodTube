@@ -1,9 +1,15 @@
+"""
+This handles converting Bitchute channels into podcast-friendly RSS feeds.
+"""
+
 #!/usr/bin/python3
 
 # basic, standard libs
-import logging, requests
+import datetime
+import logging
+import requests
 
-# Needed to bypass CloudFlare
+# Needed to bypass CloudFlare bot blocks
 import cloudscraper
 
 # web grabbing and parsing libs
@@ -13,21 +19,23 @@ from feedgen.feed import FeedGenerator
 
 from tornado import web
 
-## setup timezone object, needed for pubdate
-import datetime, pytz
-from pytz import timezone
-tz = timezone('US/Central')
-
 __version__ = 'v2024.02.02.1'
 
 class ChannelHandler(web.RequestHandler):
+    """
+    Set the response headers for the specified channel.
+    
+    :param channel: The channel for which the headers are being set.
+    :return: None
+    """
+
     def head(self, channel):
         self.set_header('Content-type', 'application/rss+xml')
         self.set_header('Accept-Ranges', 'bytes')
 
     def get(self, channel):
         # make/build RSS feed
-        url = "https://bitchute.com/channel/%s/?showall=1" % channel
+        url = f"https://bitchute.com/channel/{channel}/?showall=1"
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
         self.write( feed )
@@ -79,10 +87,10 @@ class ChannelHandler(web.RequestHandler):
 
         channeluser = bs.find("p", "name")
         if channeluser:
-            feed.description( "Bitchute user name: %s" % channeluser.text )
+            feed.description( f"Bitchute user name: {channeluser.text}" )
         else:
             logging.error("Failed to pull channel user name. Using provided channel instead")
-            feed.description( "Bitchute user name: %s" % channel )
+            feed.description( f"Bitchute user name: {channel}" )
 
         channelid = bs.find("a", "spa")
         if channelid:
@@ -97,7 +105,6 @@ class ChannelHandler(web.RequestHandler):
         ## loop through videos build feed item dict
         videos = bs.find_all("div", "channel-videos-container")
         if videos:
-            vidcount = len( videos )
             itemcounter = 0
             for video in videos:
                 item = feed.add_entry()
