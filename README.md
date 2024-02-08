@@ -37,9 +37,9 @@ If you want an audio podcast add a /audio to the url
 ```
 http://yourserver.com/youtube/playlist/<PlaylistID>/audio
 
-http://yourserver.com/youtube/channel/youtube-channel-id/auido
+http://yourserver.com/youtube/channel/youtube-channel-id/audio
 
-http://yourserver.com/youtube/user/@username/auido
+http://yourserver.com/youtube/user/@username/audio
 ```
 
 ### Bitchute
