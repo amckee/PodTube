@@ -16,10 +16,13 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-__version__ = '2024.02.07.3'
+__version__ = '2024.02.07.4'
 
 class FileHandler(web.RequestHandler):
     def get(self):
+        """
+        A method to handle GET requests and serve the README page with PodTube information.
+        """
         logging.info('ReadMe (%s)', self.request.remote_ip)
         self.write('<html><head><title>PodTube (v')
         self.write(__version__)
@@ -36,9 +39,30 @@ class FileHandler(web.RequestHandler):
         self.write('</body></html>')
 
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+    """
+    Get the value of a configuration option from the given ConfigParser object or from the environment variable.
+    
+    Args:
+        conf (ConfigParser): The ConfigParser object containing the configuration options.
+        env_name (str): The name of the environment variable to check for the option value.
+        config_name (str): The name of the configuration option to retrieve.
+        default_value: The default value to return if the option is not found in the configuration or environment.
+
+    Returns:
+        The value of the configuration option from the ConfigParser object or environment variable, or the default value if not found.
+    """
     return utils.get_env_or_config_option(conf, env_name, config_name, "general", default_value=default_value)
 
 def make_app(config: ConfigParser):
+    """
+    Initializes the web application with the given configuration and returns the initialized web application.
+
+    Parameters:
+    - config: ConfigParser - the configuration to initialize the web application.
+
+    Returns:
+    - web.Application - the initialized web application.
+    """
     youtube.init(config)
     webapp = web.Application([
         (r'/youtube/channel/(.*)', youtube.ChannelHandler, {
@@ -144,7 +168,7 @@ if __name__ == '__main__':
     )
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
-    logging.info(f"Start server")
+    logging.info("Start server")
     app = make_app(conf)
     app.listen(args.port)
     logging.info(f'Started listening on {args.port}')
