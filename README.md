@@ -40,6 +40,10 @@ http://yourserver.com/youtube/playlist/<PlaylistID>/audio
 http://yourserver.com/youtube/channel/youtube-channel-id/audio
 
 http://yourserver.com/youtube/user/@username/audio
+
+#### For Youtube only, limit the number of pages we pull from to 10 pages
+...
+http://yourserver.com/youtube/channel/youtube-channel-id?max=10
 ```
 
 ### Bitchute
