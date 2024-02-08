@@ -6,3 +6,4 @@ feedgen
 pytube3
 tornado
 pytz
+cloudscraper
