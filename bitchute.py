@@ -76,11 +76,14 @@ class ChannelHandler(web.RequestHandler):
 
         logging.info( "Getting url: %s" % url )
         scraper = cloudscraper.create_scraper(browser="chrome")
+
         r = scraper.get( url )
 
         if r.status_code == 403:
             logging.error( "CloudFlare blocked: %s" % url)
             self.set_status(403)
+        else:
+            logging.info( "Cloudscraper returned status code: %s" % r.status_code )
         return r.text
 
     def generate_rss( self, channel ):
