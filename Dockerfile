@@ -2,7 +2,7 @@
 
 FROM python:3.10
 
-LABEL net.ftawesome.home.version='2024.02.07.3'
+LABEL net.ftawesome.home.version='2024.04.09.1'
 
 WORKDIR /opt/
 
