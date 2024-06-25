@@ -39,7 +39,7 @@ converting_lock = Semaphore(2)
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
     """
     Get the value of a configuration option from the given ConfigParser object, either from the environment variables or from the configuration file.
-    
+
     Args:
         conf (ConfigParser): The ConfigParser object containing the configuration options.
         env_name (str): The name of the environment variable to check for the configuration option.
@@ -83,10 +83,10 @@ def init(conf: ConfigParser):
 def set_key( new_key=None ):
     """
     Sets the value of the global variable `key` to the provided `new_key`.
-    
+
     :param new_key: A string representing the new value for the `key` variable.
     :type new_key: str
-    
+
     :return: None
     """
     global key
@@ -176,9 +176,9 @@ def cleanup():
 @gen.coroutine
 def convert_videos():
     """
-    Asynchronous function to convert videos. 
-    This function checks the conversion queue for pending videos, selects the next video to convert, 
-    and then initiates the conversion process. 
+    Asynchronous function to convert videos.
+    This function checks the conversion queue for pending videos, selects the next video to convert,
+    and then initiates the conversion process.
     If an error occurs during the conversion, it handles the error and cleans up any temporary files.
     """
     global conversion_queue
@@ -290,11 +290,11 @@ class ChannelHandler(web.RequestHandler):
     def head(self):
         """
         Coroutine function to set header values for the specified channel.
-        
+
         Args:
             self: The instance of the class.
             channel: The channel for which the header values are being set.
-        
+
         Returns:
             None
         """
@@ -304,7 +304,7 @@ class ChannelHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, channel):
         """
-        A coroutine function that retrieves videos from a specified YouTube channel and generates an RSS feed. 
+        A coroutine function that retrieves videos from a specified YouTube channel and generates an RSS feed.
         Parameters:
             - self: the class instance
             - channel: the channel from which to retrieve videos
@@ -530,7 +530,7 @@ class PlaylistHandler(web.RequestHandler):
         Args:
             self: The instance of the class.
             playlist: The playlist for which the header is being set.
-        
+
         Returns:
             None
         """
@@ -699,10 +699,10 @@ class VideoHandler(web.RequestHandler):
     def get(self, video):
         """
         Get the video URL from YouTube using the provided video ID, and handle the redirection or error response accordingly.
-        
+
         Parameters:
             video (str): The ID of the video to retrieve from YouTube.
-        
+
         Returns:
             None
         """
@@ -908,6 +908,8 @@ class UserHandler(web.RequestHandler):
                 except:
                     # not all links have a rel
                     pass
+
+            del bs
             return can_url
         return None
 
@@ -940,10 +942,10 @@ class UserHandler(web.RequestHandler):
     def get(self, username):
         """
         A method to handle a Youtube channel by name and redirect to the corresponding URL.
-        
+
         Args:
             username (str): The username of the Youtube channel.
-        
+
         Returns:
             None
         """
