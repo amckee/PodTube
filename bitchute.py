@@ -2,26 +2,12 @@
 This handles converting Bitchute channels into podcast-friendly RSS feeds.
 """
 
-#!/usr/bin/python3
-
-# basic, standard libs
-import datetime
 import logging
 import requests
-
-# Needed to bypass CloudFlare bot blocks
-#import cloudscraper
-
-#from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from tornado import web
 
-## setup timezone object, needed for pubdate
-# from pytz import timezone
-# tz = timezone('UTC')
-bitchuteurl = 'https://api.bitchute.com'
-
-__version__ = 'v2024.06.28.2'
+__version__ = 'v2024.06.28.3'
 
 class ChannelHandler(web.RequestHandler):
     """
@@ -178,11 +164,11 @@ class ChannelHandler(web.RequestHandler):
                 item.pubDate( video['date_published'] )
                 item.podcast.itunes_duration( video['duration'] )
                 item.link(
-                    href = f"https://www.bitchute.com{video['video_url']}",
+                    href = f"http://{self.request.host}/bitchute/video/{video['video_id']}",
                     title = video['video_name']
                 )
                 item.enclosure(
-                    url = f"https://www.bitchute.com{video['video_url']}",
+                    url = f"http://{self.request.host}/bitchute/video/{video['video_id']}",
                     length = video['duration'],
                     type = 'video/mp4'
                 )
@@ -231,6 +217,45 @@ def get_bitchute_url(video_id):
     return video_url
 
 class VideoHandler(web.RequestHandler):
+    def get_video_url(self, video_id):
+        """
+        Function to retrieve the Bitchute video URL for a given video ID.
+
+        Parameters:
+        - video_id: str, the ID of the video
+
+        Returns:
+        - str, the URL of the video source
+        """
+        headers = {
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/json',
+            'origin': 'https://www.bitchute.com',
+            'priority': 'u=1, i',
+            'referer': 'https://www.bitchute.com/',
+            'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Linux"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-site',
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        }
+
+        json_data = {
+            'video_id': video_id,
+            'offset': 0,
+            'limit': 20,
+        }
+
+        response = requests.post("https://api.bitchute.com/api/beta9/video", headers=headers, json=json_data, timeout=10)
+        video = response.json()
+        channel_id = video['channel']['channel_id']
+        video_id = video['video_id']
+        video_url = f"https://seed1sjt3.bitchute.com/{channel_id}/{video_id}.mp4"
+
+        return video_url
     def get(self, video):
         """
         Get the Bitchute video and redirect to the Bitchute URL.
@@ -242,4 +267,4 @@ class VideoHandler(web.RequestHandler):
             None
         """
         logging.info("Bitchute Video: %s" % video)
-        self.redirect( get_bitchute_url(video) )
+        self.redirect( self.get_video_url(video) )
