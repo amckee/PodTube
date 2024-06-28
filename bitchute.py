@@ -10,19 +10,18 @@ import logging
 import requests
 
 # Needed to bypass CloudFlare bot blocks
-import cloudscraper
+#import cloudscraper
 
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from tornado import web
 
 ## setup timezone object, needed for pubdate
-import pytz
-from pytz import timezone
-tz = timezone('UTC')
-bitchuteurl = 'https://old.bitchute.com'
+# from pytz import timezone
+# tz = timezone('UTC')
+bitchuteurl = 'https://api.bitchute.com'
 
-__version__ = 'v2024.06.28.1'
+__version__ = 'v2024.06.28.2'
 
 class ChannelHandler(web.RequestHandler):
     """
@@ -71,7 +70,7 @@ class ChannelHandler(web.RequestHandler):
         Returns:
             str: The HTML content of the channel's page.
         """
-        url = f"{bitchuteurl}/channel/{channel}/?showall=1"
+        url = f"{bitchuteurl}/channel/{channel}"
         logging.info( "Requesting Bitchute URL: %s" % url )
 
 
@@ -85,7 +84,113 @@ class ChannelHandler(web.RequestHandler):
             self.set_status(403)
         else:
             logging.info( "Cloudscraper returned status code: %s" % r.status_code )
+            self.set_status(r.status_code)
         return r.text
+
+    def add_channel_info( self, feed, channel ):
+        """
+        Fetches the channel information from the Bitchute API.
+
+        Args:
+            channel (str): The channel identifier.
+
+        Returns:
+            dict: The channel information.
+        """
+        headers = {
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/json',
+            'origin': 'https://www.bitchute.com',
+            'priority': 'u=1, i',
+            'referer': 'https://www.bitchute.com/',
+            'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Linux"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-site',
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        }
+
+        json_data = {
+            'channel_id': channel,
+        }
+
+        response = requests.post('https://api.bitchute.com/api/beta/channel',
+                                    headers=headers,
+                                    json=json_data,
+                                    timeout=10)
+        channel = response.json()
+
+        feed.title( channel['channel_name'] )
+        feed.description( channel['description'] )
+        feed.id( channel['channel_id'] )
+        feed.language( 'en' )
+        feed.image( channel['thumbnail_url'] )
+        feed.link(
+            href = f'https://www.bitchute.com/{channel['channel_url']}',
+            rel = 'self'
+        )
+
+        return feed
+
+    def add_videos( self, feed, channel ):
+        """
+        Fetches the list of video identifiers from the Bitchute API.
+
+        Args:
+            channel (str): The channel identifier.
+
+        Returns:
+            list: The list of video identifiers.
+        """
+        headers = {
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/json',
+            'origin': 'https://www.bitchute.com',
+            'priority': 'u=1, i',
+            'referer': 'https://www.bitchute.com/',
+            'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Linux"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-site',
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        }
+
+        json_data = {
+            "channel_id": channel,
+            'offset': 0,
+            'limit': 20,
+        }
+
+        videos = requests.post("https://api.bitchute.com/api/beta/channel/videos", headers=headers, json=json_data, timeout=10)
+        if videos.status_code == 200:
+            videos = videos.json()
+
+            for video in videos['videos']:
+                item = feed.add_entry()
+                item.title( video['video_name'] )
+                item.description( video['description'] )
+                item.pubDate( video['date_published'] )
+                item.podcast.itunes_duration( video['duration'] )
+                item.link(
+                    href = f"https://www.bitchute.com{video['video_url']}",
+                    title = video['video_name']
+                )
+                item.enclosure(
+                    url = f"https://www.bitchute.com{video['video_url']}",
+                    length = video['duration'],
+                    type = 'video/mp4'
+                )
+        else:
+            logging.error( "Bitchute returned status code: %s" % videos.status_code )
+            self.set_status(videos.status_code)
+
+        return feed
 
     def generate_rss( self, channel ):
         """
@@ -98,116 +203,14 @@ class ChannelHandler(web.RequestHandler):
             str: The RSS feed in string format.
         """
         logging.info( "Bitchute URL: %s" % channel )
-        html = self.get_html( channel )
-        if self.get_status() == 403:
-            return "Request responded: 403 (likely a CloudFlare block)\r\n\r\n\r\n" + html.get_text().replace('\n\n\n\n\n\n\n', '\n')
 
-        soup = BeautifulSoup( html, "lxml" )
         feed = FeedGenerator()
-
-        soup = soup.find("div", "container-fluid")
         feed.load_extension('podcast')
 
-        ## gather channel information
-        element = soup.find("div", "channel-banner")
-        if element:
-            feed.title( element.find("p", "name").text )
-        else:
-            logging.error("Failed to pull channel title. Using provided channel instead")
-            feed.title( channel )
+        self.add_channel_info( feed, channel )
+        self.add_videos( feed, channel )
 
-        element = soup.find("div", "image-container")
-        if element:
-            feed.image( element.find("img")['data-src'] )
-        else:
-            logging.error("Failed to pull channel image.")
-
-        element = soup.find("p", "name")
-        if element:
-            feed.description( f"Bitchute user name: {element.text}" )
-        else:
-            logging.error("Failed to pull channel user name. Using provided channel instead")
-            feed.description( f"Bitchute user name: {channel}" )
-
-        element = soup.find("a", "spa")
-        if element:
-            feed.id( element['href'] )
-            feed.link( {'href': element['href'], 'rel': 'self'} )
-        else:
-            logging.error("Failed to pull channel ID. Using provided channel instead")
-            feed.id( channel )
-
-        feed.language('en')
-
-        ## loop through videos build feed item dict
-        videos = soup.find_all("div", "channel-videos-container")
-        if videos:
-            itemcounter = 0
-            for video in videos:
-                item = feed.add_entry()
-
-                element = video.find("div", "channel-videos-title")
-                if element:
-                    item.title( element.text )
-                else:
-                    logging.error("Failed to pull video title")
-                    item.title( channel )
-
-                element = video.find("div", "channel-videos-text")
-                if element:
-                    item.description( element.text )
-                else:
-                    logging.error("Failed to pull video description")
-                    item.description( channel )
-
-                element = video.find("div", "channel-videos-image")
-                if element:
-                    item.podcast.itunes_image( element.find("img")['data-src'] )
-                    item.image = element.find("img")['data-src']
-                else:
-                    logging.error("Failed to pull video image")
-
-                element = video.find("div", "channel-videos-title")
-                if element:
-                    link = element.find("a", "spa")['href']
-                    link = f'http://{self.request.host}/bitchute{link}'
-                else:
-                    logging.error("Failed to pull video link")
-                    link = None
-
-                element = video.find("div", "channel-videos-title")
-                if element:
-                    title = element.text
-                else:
-                    logging.error("Failed to pull video title")
-                    title = None
-
-                item.link(
-                    href = link,
-                    title = title
-                )
-
-                element = video.find("div", "channel-videos-details")
-                if element:
-                    viddate = " ".join([element.text.strip(), str(itemcounter)])
-                    date = datetime.datetime.strptime(  viddate, "%b %d, %Y %M" ).astimezone( tz )
-                    item.pubDate( date )
-                else:
-                    logging.error("Failed to pull video date")
-
-                item.enclosure(
-                    url = link,
-                    type = "video/mp4"
-                )
-
-                element = video.find("span", "video-duration")
-                if element:
-                    item.podcast.itunes_duration( element.text )
-                else:
-                    logging.error("Failed to pull video duration")
-                itemcounter += 1
-
-        return feed.rss_str( pretty=True )
+        return feed.rss_str(pretty=False)
 
 def get_bitchute_url(video_id):
     """
