@@ -453,13 +453,6 @@ def get_rumble_url( video, bitrate=None ):
                         logging.info('Found 480p video')
                         vidurl = vidInfo[thing]['mp4']['480']['url']
 
-        # if vidurl is None:
-        #     if 'u' in vidInfo:
-        #         if 'mp4' in vidInfo['u']:
-        #             if 'url' in vidInfo['u']['mp4']:
-        #                 logging.info('Found generic mp4')
-        #                 vidurl = vidInfo['u']['mp4']['url']
-
     ## Fallback method, in case the above code failed to find anything
     if vidurl is None:
         logging.info("Using fallback Rumble 'geturl' method")

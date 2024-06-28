@@ -20,8 +20,9 @@ from tornado import web
 import pytz
 from pytz import timezone
 tz = timezone('UTC')
+bitchuteurl = 'https://old.bitchute.com'
 
-__version__ = 'v2024.02.02.1'
+__version__ = 'v2024.06.28.1'
 
 class ChannelHandler(web.RequestHandler):
     """
@@ -70,7 +71,7 @@ class ChannelHandler(web.RequestHandler):
         Returns:
             str: The HTML content of the channel's page.
         """
-        url = f"https://bitchute.com/channel/{channel}/?showall=1"
+        url = f"{bitchuteurl}/channel/{channel}/?showall=1"
         logging.info( "Requesting Bitchute URL: %s" % url )
 
 
@@ -218,7 +219,7 @@ def get_bitchute_url(video_id):
     Returns:
     - str, the URL of the video source
     """
-    url = f"https://bitchute.com/video/{video_id}"
+    url = f"{bitchuteurl}/video/{video_id}"
     logging.info( "Requesting Bitchute URL: %s" % url )
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
