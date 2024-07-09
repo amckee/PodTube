@@ -259,7 +259,11 @@ def get_youtube_url(video):
         return e
 
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
-    logging.debug( "Stream count: %s" % len(yt.streams) )
+    try:
+        logging.debug( "Stream count: %s" % len(yt.streams) )
+    except Exception as e:
+        logging.error( "Failed to get stream count." )
+
     vid = yt.streams.get_highest_resolution().url
     logging.debug( "Highest resultion URL: %s: " % vid )
 

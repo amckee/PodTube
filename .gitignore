@@ -8,6 +8,7 @@ audio
 podtube.log
 fly.toml
 config.ini
+cipher.py
 
 
 ### JetBrains template

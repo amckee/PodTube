@@ -1,19 +1,9 @@
---- /home/adam/.local/lib/python3.10/site-packages/pytube/cipher.py	2023-08-16 20:42:27.850505987 -0500
-+++ cipher.new.py	2023-08-16 20:43:45.744861879 -0500
-@@ -27,7 +27,7 @@
- class Cipher:
-     def __init__(self, js: str):
-         self.transform_plan: List[str] = get_transform_plan(js)
--        var_regex = re.compile(r"^\w+\W")
-+        var_regex = re.compile(r"^\$?\w+\W")
-         var_match = var_regex.search(self.transform_plan[0])
-         if not var_match:
-             raise RegexMatchError(
-@@ -270,7 +270,7 @@
-         # Bpa.length || iha("")) }};
+--- /usr/lib/python3.12/site-packages/pytube/cipher.py	2024-04-05 16:22:49.000000000 -0500
++++ ./cipher.py	2024-07-09 12:34:40.705106637 -0500
+@@ -271,6 +271,7 @@
          # In the above case, `iha` is the relevant function name
-         r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
--        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
+         r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&.*?\|\|\s*([a-z]+)',
+         r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
 +        r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)',
      ]
      logger.debug('Finding throttling function name')
