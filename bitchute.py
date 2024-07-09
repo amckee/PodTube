@@ -43,7 +43,7 @@ class ChannelHandler(web.RequestHandler):
         # make/build RSS feed
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
-        self.write( feed )
+        self.write( feed.rss_str(pretty=False) )
         self.finish()
 
     def get_html( self, channel ):
@@ -196,37 +196,20 @@ class ChannelHandler(web.RequestHandler):
         self.add_channel_info( feed, channel )
         self.add_videos( feed, channel )
 
-        return feed.rss_str(pretty=False)
-
-def get_bitchute_url(video_id):
-    """
-    Function to retrieve the Bitchute video URL for a given video ID.
-
-    Parameters:
-    - video_id: str, the ID of the video
-
-    Returns:
-    - str, the URL of the video source
-    """
-    url = f"{bitchuteurl}/video/{video_id}"
-    logging.info( "Requesting Bitchute URL: %s" % url )
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    video_element = soup.find("video").find("source")
-    video_url = video_element['src']
-    return video_url
+        return feed
 
 class VideoHandler(web.RequestHandler):
     def get_video_url(self, video_id):
         """
-        Function to retrieve the Bitchute video URL for a given video ID.
+        Retrieve the Bitchute video URL for a given video ID.
 
-        Parameters:
-        - video_id: str, the ID of the video
+        Args:
+            video_id (str): The ID of the video.
 
         Returns:
-        - str, the URL of the video source
+            str: The URL of the video source.
         """
+        # Define the headers for the API request.
         headers = {
             'accept': 'application/json, text/plain, */*',
             'accept-language': 'en-US,en;q=0.9',
@@ -243,16 +226,22 @@ class VideoHandler(web.RequestHandler):
             'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         }
 
+        # Define the JSON data for the API request.
         json_data = {
             'video_id': video_id,
             'offset': 0,
             'limit': 20,
         }
 
+        # Send a POST request to the Bitchute API to fetch the video details.
         response = requests.post("https://api.bitchute.com/api/beta9/video", headers=headers, json=json_data, timeout=10)
         video = response.json()
+
+        # Extract the channel ID and video ID from the API response.
         channel_id = video['channel']['channel_id']
         video_id = video['video_id']
+
+        # Construct the video URL using the channel ID and video ID.
         video_url = f"https://seed1sjt3.bitchute.com/{channel_id}/{video_id}.mp4"
 
         return video_url
