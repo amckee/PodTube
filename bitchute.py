@@ -7,7 +7,7 @@ import requests
 from feedgen.feed import FeedGenerator
 from tornado import web
 
-__version__ = 'v2024.06.28.3'
+__version__ = 'v2024.07.09.1'
 
 class ChannelHandler(web.RequestHandler):
     """
@@ -110,6 +110,12 @@ class ChannelHandler(web.RequestHandler):
         channel = response.json()
 
         feed.title( channel['channel_name'] )
+
+        # Feedgen doesn't like a blank description
+        if channel['description']:
+            feed.description( channel['description'] )
+        else:
+            feed.description( channel['channel_name'] )
         feed.description( channel['description'] )
         feed.id( channel['channel_id'] )
         feed.language( 'en' )
