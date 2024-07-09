@@ -7,7 +7,7 @@ import requests
 from feedgen.feed import FeedGenerator
 from tornado import web
 
-__version__ = 'v2024.07.09.1'
+__version__ = 'v2024.07.09.2'
 
 class ChannelHandler(web.RequestHandler):
     """
@@ -116,7 +116,6 @@ class ChannelHandler(web.RequestHandler):
             feed.description( channel['description'] )
         else:
             feed.description( channel['channel_name'] )
-        feed.description( channel['description'] )
         feed.id( channel['channel_id'] )
         feed.language( 'en' )
         feed.image( channel['thumbnail_url'] )
