@@ -114,8 +114,10 @@ class ChannelHandler(web.RequestHandler):
         feed.id( channel['channel_id'] )
         feed.language( 'en' )
         feed.image( channel['thumbnail_url'] )
+
+        url = channel['channel_url']
         feed.link(
-            href = f'https://www.bitchute.com/{channel['channel_url']}',
+            href = f'https://www.bitchute.com/{url}',
             rel = 'self'
         )
 
