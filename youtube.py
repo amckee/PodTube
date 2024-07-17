@@ -18,6 +18,15 @@ from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
+from pytube.innertube import _default_clients
+
+_default_clients[ "ANDROID"][ "context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients[ "ANDROID_EMBED"][ "context"][ "client"]["clientVersion"] = "19.08.35"
+_default_clients[ "IOS_EMBED"][ "context"]["client"]["clientVersion"] = "19.08.35"
+_default_clients["IOS_MUSIC"][ "context"]["client"]["clientVersion"] = "6.41"
+_default_clients[ "ANDROID_MUSIC"] = _default_clients[ "ANDROID_CREATOR" ]
+
 key = None
 cleanup_period = None
 convert_video_period = None
@@ -257,6 +266,11 @@ def get_youtube_url(video):
     except Exception as e:
         logging.error( "Error returned by Youtube: %s - %s" % (e.status, e.msg) )
         return e
+
+    # run a quick playability check
+    if yt.vid_info['playabilityStatus']['status'] != 'OK':
+        logging.error( "Error returned by Youtube: %s - %s" % (yt.vid_info['playabilityStatus']['status'], yt.vid_info['playabilityStatus']['reason'] ) )
+        return yt.vid_info['playabilityStatus']['reason']
 
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
     try:
