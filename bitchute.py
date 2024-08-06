@@ -262,5 +262,6 @@ class VideoHandler(web.RequestHandler):
         Returns:
             None
         """
+        video = video.rstrip("/")
         logging.info("Bitchute Video: %s" % video)
         self.redirect( self.get_video_url(video) )
