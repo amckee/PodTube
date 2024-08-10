@@ -138,3 +138,4 @@ audio/
 .venv
 
 *.lock
+cipher.new.py
