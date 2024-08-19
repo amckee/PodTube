@@ -42,7 +42,6 @@ class ChannelHandler(web.RequestHandler):
         feed.load_extension('podcast')
 
         ## Get Channel Info
-
         channel_title = bs.find("div", "channel-header--title")
         if channel_title:
             channel_title = channel_title.find("h1").text
@@ -79,8 +78,7 @@ class ChannelHandler(web.RequestHandler):
         if videos:
             for video in videos:
                 ## Check for and skip live videos and upcomming videos.
-                ## Disabled to test if this is needed.
-                if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming"):
+                if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming") or video.find("div", "videostream__status--live"):
                     logging.info("Found live/upcoming video, skipping")
                     continue
 
