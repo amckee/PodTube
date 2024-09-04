@@ -3,28 +3,30 @@ This file contains the implementation of handlers and functions related to inter
 content. It includes classes such as VideoHandler, AudioHandler, ClearCacheHandler, and UserHandler,
 which handle different types of requests related to YouTube content.
 """
+from configparser import ConfigParser, NoSectionError, NoOptionError
+
 import datetime
 import logging
 import os
-import psutil
 import time
 import glob
 import requests
 import utils
-from configparser import ConfigParser, NoSectionError, NoOptionError
 from pathlib import Path
 from feedgen.feed import FeedGenerator
 from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
+import psutil
+
 from pytube.innertube import _default_clients
 
-_default_clients[ "ANDROID"][ "context"]["client"]["clientVersion"] = "19.08.35"
-_default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
-_default_clients[ "ANDROID_EMBED"][ "context"][ "client"]["clientVersion"] = "19.08.35"
-_default_clients[ "IOS_EMBED"][ "context"]["client"]["clientVersion"] = "19.08.35"
-_default_clients["IOS_MUSIC"][ "context"]["client"]["clientVersion"] = "6.41"
+# _default_clients[ "ANDROID"][ "context"]["client"]["clientVersion"] = "19.08.35"
+# _default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
+# _default_clients[ "ANDROID_EMBED"][ "context"][ "client"]["clientVersion"] = "19.08.35"
+# _default_clients[ "IOS_EMBED"][ "context"]["client"]["clientVersion"] = "19.08.35"
+# _default_clients["IOS_MUSIC"][ "context"]["client"]["clientVersion"] = "6.41"
 _default_clients[ "ANDROID_MUSIC"] = _default_clients[ "ANDROID_CREATOR" ]
 
 key = None
@@ -77,7 +79,7 @@ def init(conf: ConfigParser):
     audio_expiration_time        = int(get_env_or_config_option(conf, "YT_AUDIO_EXPIRATION_TIME"       , "audio_expiration_time"       , default_value=259200000)) # 3 days
     start_cleanup_size_threshold = int(get_env_or_config_option(conf, "YT_START_CLEANUP_SIZE_THRESHOLD", "start_cleanup_size_threshold", default_value=536870912)) # 0.5GiB
     stop_cleanup_size_threshold  = int(get_env_or_config_option(conf, "YT_STOP_CLEANUP_SIZE_THRESHOLD" , "stop_cleanup_size_threshold" , default_value=16106127360)) # 15GiB
-    autoload_newest_audio        =     get_env_or_config_option(conf, "YT_AUTOLOAD_NEWEST_AUDIO"       , "autoload_newest_audio"       , default_value=True)
+    autoload_newest_audio        = get_env_or_config_option(conf, "YT_AUTOLOAD_NEWEST_AUDIO"       , "autoload_newest_audio"       , default_value=True)
     autoload_newest_audio = utils.convert_to_bool(autoload_newest_audio)
 
     ioloop.PeriodicCallback(
@@ -262,7 +264,7 @@ def get_youtube_url(video):
     yt = None
 
     try:
-        yt = YouTube(yturl)
+        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True)
     except Exception as e:
         logging.error( "Error returned by Youtube: %s - %s" % (e.status, e.msg) )
         return e
