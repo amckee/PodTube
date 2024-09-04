@@ -10,24 +10,24 @@ import logging
 import os
 import time
 import glob
-import requests
-import utils
 from pathlib import Path
 from feedgen.feed import FeedGenerator
-from pytube import YouTube, exceptions
+import requests
+import utils
+from pytubefix import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 
 import psutil
 
-from pytube.innertube import _default_clients
+#from pytube.innertube import _default_clients
 
 # _default_clients[ "ANDROID"][ "context"]["client"]["clientVersion"] = "19.08.35"
 # _default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
 # _default_clients[ "ANDROID_EMBED"][ "context"][ "client"]["clientVersion"] = "19.08.35"
 # _default_clients[ "IOS_EMBED"][ "context"]["client"]["clientVersion"] = "19.08.35"
 # _default_clients["IOS_MUSIC"][ "context"]["client"]["clientVersion"] = "6.41"
-_default_clients[ "ANDROID_MUSIC"] = _default_clients[ "ANDROID_CREATOR" ]
+#_default_clients[ "ANDROID_MUSIC"] = _default_clients[ "ANDROID_CREATOR" ]
 
 key = None
 cleanup_period = None
