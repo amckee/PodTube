@@ -7,3 +7,4 @@ disabled
 .gitignore
 fly.toml
 podtube.log
+.git
