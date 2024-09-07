@@ -6,7 +6,7 @@ from datetime import datetime
 import sys
 from urllib.parse import urlencode
 
-from pytube import YouTube
+from pytubefix import YouTube
 
 video_links = dict()
 metric_chart = {
