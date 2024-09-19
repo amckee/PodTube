@@ -11,7 +11,7 @@ config.ini
 cipher.py
 
 # Youtube started requiring a login. This is my auth token.
-# After created manually/locally, it is copied from /usr/lib/python3.12/site-packages/pytube/__cache__/
+# After created manually/locally, it is copied from /usr/lib/python3.##/site-packages/pytube/__cache__/
 tokens.json
 
 ### JetBrains template

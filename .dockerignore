@@ -8,3 +8,5 @@ disabled
 fly.toml
 podtube.log
 .git
+cipher.new.py
+Pipfile
