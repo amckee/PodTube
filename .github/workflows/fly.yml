@@ -10,15 +10,9 @@ jobs:
     name: Deploy app
     runs-on: ubuntu-latest
     steps:
-      - name: Setup token
-        env:
-          YT_TOKEN: ${{ secrets.YT_TOKEN }}
-        shell: bash
-        run: |
-          sudo mkdir -p /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/
-          sudo echo "${YT_TOKEN}" > /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/tokens.json
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only -a podtube
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          YT_TOKEN: ${{ secrets.YT_TOKEN }}
