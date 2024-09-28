@@ -249,7 +249,7 @@ class VideoHandler(web.RequestHandler):
         video_id = video['video_id']
 
         # Construct the video URL using the channel ID and video ID.
-        video_url = f"https://seed1sjt3.bitchute.com/{channel_id}/{video_id}.mp4"
+        video_url = f"https://seedxvj21.bitchute.com/{channel_id}/{video_id}.mp4"
 
         return video_url
     def get(self, video):

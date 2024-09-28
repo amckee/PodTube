@@ -3,7 +3,8 @@ psutil
 requests
 requests_html
 feedgen
-pytube3
+#pytube3
+pytubefix
 tornado
 pytz
 cloudscraper
