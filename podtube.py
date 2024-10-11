@@ -16,7 +16,7 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-__version__ = '2024.09.24.2'
+__version__ = '2024.09.25.1'
 
 class FileHandler(web.RequestHandler):
     def get(self):
