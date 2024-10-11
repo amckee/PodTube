@@ -81,6 +81,10 @@ class ChannelHandler(web.RequestHandler):
                 if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming") or video.find("div", "videostream__status--live"):
                     logging.info("Found live/upcoming video, skipping")
                     continue
+                ## Filter out live and upcoming videos
+                if video.find("div", "videostream__footer--live"):
+                    logging.info("Found upcoming video, skipping")
+                    continue
 
                 ## Gather channel information
                 item = feed.add_entry()
