@@ -77,14 +77,20 @@ class ChannelHandler(web.RequestHandler):
 
         if videos:
             for video in videos:
-                ## Check for and skip live videos and upcomming videos.
+                ## Check for and skip live videos and upcomming videos
                 if video.find("span", "video-item--live") \
                     or video.find("span", "video-item--upcoming") \
                     or video.find("div", "videostream__status--live") \
-                    or video.find("div", "videostream__footer--live") \
-                    or video.find("span", "text-link-green").text == "Premium only":
-                    logging.info("Found live/upcoming/premium video, skipping")
+                    or video.find("div", "videostream__footer--live"):
+                    vidTitle = video.find("h3", "thumbnail__title")
+                    logging.info("Skipping live/upcoming video: %s" % vidTitle.text.strip())
                     continue
+
+                ## Check for and skip premium videos
+                el = video.find("span", "text-link-green")
+                if el and el.text == "Premium only":
+                    vidTitle = video.find("h3", "thumbnail__title")
+                    logging.info("Skipping premium video: %s" % vidTitle.text.strip())
 
                 ## Gather channel information
                 item = feed.add_entry()
