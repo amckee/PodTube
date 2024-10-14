@@ -16,7 +16,7 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-__version__ = '2024.10.14.1'
+__version__ = '2024.10.14.2'
 
 class FileHandler(web.RequestHandler):
     def get(self):
@@ -41,7 +41,7 @@ class FileHandler(web.RequestHandler):
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
     """
     Get the value of a configuration option from the given ConfigParser object or from the environment variable.
-    
+
     Args:
         conf (ConfigParser): The ConfigParser object containing the configuration options.
         env_name (str): The name of the environment variable to check for the option value.
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         os.mkdir('audio')
     defaults = {}
     parser = ArgumentParser(
-        description="This is a python application for converting Youtube, Rumble and Bitchute channels into podcast-friendly RSS feeds."
+        description="This is a python application for converting Youtube, Rumble and Bitchute channels into RSS feeds."
     )
     parser.add_argument(
         '--config-file',
@@ -169,7 +169,13 @@ if __name__ == '__main__':
     for file in glob.glob('audio/*.temp'):
         os.remove(file)
     logging.info("Start server")
-    app = make_app(conf)
-    app.listen(args.port)
-    logging.info(f'Started listening on {args.port}')
-    ioloop.IOLoop.instance().start()
+    try:
+        app = make_app(conf)
+        app.listen(args.port)
+        logging.info(f'Started listening on {args.port}')
+        ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        logging.info("Stopping server")
+        ioloop.IOLoop.instance().stop()
+    finally:
+        logging.info("Server stopped cleanly")
