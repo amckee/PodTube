@@ -78,12 +78,12 @@ class ChannelHandler(web.RequestHandler):
         if videos:
             for video in videos:
                 ## Check for and skip live videos and upcomming videos.
-                if video.find("span", "video-item--live") or video.find("span", "video-item--upcoming") or video.find("div", "videostream__status--live"):
-                    logging.info("Found live/upcoming video, skipping")
-                    continue
-                ## Filter out live and upcoming videos
-                if video.find("div", "videostream__footer--live"):
-                    logging.info("Found upcoming video, skipping")
+                if video.find("span", "video-item--live") \
+                    or video.find("span", "video-item--upcoming") \
+                    or video.find("div", "videostream__status--live") \
+                    or video.find("div", "videostream__footer--live") \
+                    or video.find("span", "text-link-green").text == "Premium only":
+                    logging.info("Found live/upcoming/premium video, skipping")
                     continue
 
                 ## Gather channel information
