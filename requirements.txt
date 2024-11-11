@@ -4,6 +4,7 @@ requests
 requests_html
 feedgen
 #pytube3
+pytube
 pytubefix
 tornado
 pytz
