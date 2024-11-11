@@ -42,7 +42,7 @@ playlist_feed = {}
 channel_feed = {}
 channel_name_to_id = {}
 
-__version__ = 'v2023.04.21.5'
+__version__ = 'v2024.11.11.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)
