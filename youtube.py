@@ -19,6 +19,7 @@ from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 import utils
 
+import ssl
 from pytube.innertube import _default_clients
 
 _default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -76,7 +77,7 @@ def patched_get_throttling_function_name(js: str) -> str:
         caller="get_throttling_function_name", pattern="multiple"
     )
 
-ssl._create_default_https_context = ssl._create_unverified_context
+# ssl._create_default_https_context = ssl._create_unverified_context
 pytube.cipher.get_throttling_function_name = patched_get_throttling_function_name
 
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
