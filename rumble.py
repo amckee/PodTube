@@ -105,8 +105,8 @@ class ChannelHandler(web.RequestHandler):
                 viddesc = video.find("div", "videostream__description")
                 if viddesc:
                     item.description( viddesc.text.strip() )
-                else:
-                    logging.info("Failed to pull video description.")
+                # else:
+                #     logging.info("Failed to pull video description.")
 
                 vid = video.find("a", "videostream__link")
                 if vid:
