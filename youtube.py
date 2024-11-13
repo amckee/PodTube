@@ -301,15 +301,15 @@ def get_youtube_url(video):
         # pytubefix.cipher.get_throttling_function_name = patched_get_throttling_function_name
         ## End attempted fix
 
-        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='WEB')
+        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='ANDROID')
     except Exception as e:
         logging.error( "Error returned by Youtube: %s - %s" % (e.status, e.msg) )
         return e
 
-    # run a quick playability check
-    if yt.vid_info['playabilityStatus']['status'] != 'OK':
-        logging.error( "Error returned by Youtube: %s - %s" % (yt.vid_info['playabilityStatus']['status'], yt.vid_info['playabilityStatus']['reason'] ) )
-        return yt.vid_info['playabilityStatus']['reason']
+    # # run a quick playability check
+    # if yt.vid_info['playabilityStatus']['status'] != 'OK':
+    #     logging.error( "Error returned by Youtube: %s - %s" % (yt.vid_info['playabilityStatus']['status'], yt.vid_info['playabilityStatus']['reason'] ) )
+    #     return yt.vid_info['playabilityStatus']['reason']
 
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
     try:
