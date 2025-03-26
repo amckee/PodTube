@@ -4,9 +4,10 @@ requests
 requests_html
 feedgen
 #pytube3
-#ssl
-#pytube
-pytubefix
+# ssl
+# pytube
+#pytubefix
+git+https://github.com/felipeucelli/pytubefix.git@ecef8fb
 tornado
 pytz
 cloudscraper
