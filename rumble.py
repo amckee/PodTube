@@ -472,23 +472,27 @@ def get_rumble_url( video, bitrate=None ):
                     vidurl = vid['url']
                     break
         else:
-            # find a default bitrate video. 240p first, 360p second, anything at all third
-            for res in ('240', '360', '480'):
-                if res in vidInfo[0]:
-                    vid = vidInfo[0].get(res)
-                    if vid is not None:
-                        logging.info("Grabbing %sp video" % res)
-                        vidurl = vid['url']
-                        break
-                else:
-                    logging.info("%s not found in video JSON" % res)
+            # First check for audio track
+            if vidInfo['u']['audio'] is not None:
+                vidurl = vidInfo['u']['audio']['url']
+            else:
+                # Resort to default bitrate video. 240p first, 360p second, anything at all third
+                for res in ('240', '360', '480'):
+                    if res in vidInfo[0]:
+                        vid = vidInfo[0].get(res)
+                        if vid is not None:
+                            logging.info("Grabbing %sp video" % res)
+                            vidurl = vid['url']
+                            break
+                    else:
+                        logging.info("%s not found in video JSON" % res)
 
-            if vidurl is None:
-                for vid in vidInfo[0]:
-                    if vidInfo[0][vid]['url'] is not None:
-                        logging.info("Grabbing %sp format" % vid)
-                        vidurl = vidInfo[0][vid]['url']
-                        break
+                if vidurl is None:
+                    for vid in vidInfo[0]:
+                        if vidInfo[0][vid]['url'] is not None:
+                            logging.info("Grabbing %sp format" % vid)
+                            vidurl = vidInfo[0][vid]['url']
+                            break
 
     if vidurl is None:
         logging.error( "Failed to get video: %s" % video)
