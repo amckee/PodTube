@@ -441,8 +441,8 @@ def get_rumble_url( video, bitrate=None ):
     regexSearch = None
     try:
         regexSearch = re.search( r';[b|f|h|v|m|y]\.f\["%s"\]=.*:[a|d|f|u]\(\)\}' % embedVidID, el ).group().replace( r';y.f["%s"]=' % embedVidID, '').replace( r';m.f["%s"]=' % embedVidID, '').replace( r';b.f["%s"]=' % embedVidID, '' ).replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r';h.f["%s"]=' % embedVidID, '' ).replace( r';v.f["%s"]=' % embedVidID, '').replace( r',loaded:f()', '' ).replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' ).replace( r',loaded:u()', '')
-    except:
-        pass
+    except Exception as e:
+        logging.error( "Failed to parse JSON data:\n%s", e )
 
     # try: #again
     #     regexSearch = re.search( )
@@ -489,13 +489,14 @@ def get_rumble_url( video, bitrate=None ):
                 logging.info( "Will try to get audio track")
                 if vidInfo['u']['audio'] is not None:
                     vidurl = vidInfo['u']['audio']['url']
+                    logging.info("Found audio track")
                 else:
                     logging.error( "Failed to find audio track: %s" % video)
 
                 if vidurl is None:
                     for vid in vidInfo[0]:
                         if vidInfo[0][vid]['url'] is not None:
-                            logging.info("Grabbing %sp format" % vid)
+                            logging.info("Found %sp format" % vid)
                             vidurl = vidInfo[0][vid]['url']
                             break
 
