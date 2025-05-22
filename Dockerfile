@@ -9,7 +9,7 @@ WORKDIR /opt/
 ADD ./ /opt/
 RUN apt update
 RUN apt -y upgrade
-RUN apt install -y nano less
+RUN apt install -y nano less git
 RUN pip install -r requirements.txt
 RUN pip install git+https://github.com/felipeucelli/pytubefix.git@new-player
 RUN mkdir -p  /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/
