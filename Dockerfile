@@ -15,4 +15,10 @@ RUN pip install git+https://github.com/felipeucelli/pytubefix.git@new-player
 RUN mkdir -p  /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/
 # RUN python -m pip install git+https://github.com/pytube/pytube
 
+# Temporary fix from https://github.com/JuanBindez/pytubefix/issues/480
+RUN wget https://patch-diff.githubusercontent.com/raw/JuanBindez/pytubefix/pull/481.patch -O yt.patch
+RUN mv yt.patch /usr/local/lib/python3.10/dist-packages/
+RUN cd /usr/local/lib/python3.10/dist-packages/
+RUN git apply yt.patch
+
 CMD ["python", "/opt/podtube.py"]
