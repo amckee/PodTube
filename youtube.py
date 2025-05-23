@@ -257,7 +257,7 @@ def get_youtube_url(video):
     yt = None
 
     try:
-        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='ANDROID')
+        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='MWEB')
     except Exception as e:
         logging.error( "Error returned by Youtube: %s - %s" % (e.status, e.msg) )
         return e
