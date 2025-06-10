@@ -12,7 +12,7 @@ RUN apt -y upgrade
 RUN apt install -y nano less
 RUN pip install -r requirements.txt
 # RUN python -m pip install git+https://github.com/pytube/pytube
-RUN pip install git+https://github.com/felipeucelli/pytubefix.git
+RUN pip install git+https://github.com/felipeucelli/pytubefix.git@dcc6196
 RUN mkdir -p  /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/
 
 CMD ["python", "/opt/podtube.py"]
