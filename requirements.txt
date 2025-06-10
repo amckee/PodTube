@@ -7,7 +7,7 @@ feedgen
 # ssl
 # pytube
 # pytubefix
-git+https://github.com/felipeucelli/pytubefix.git@1627c0f
+git+https://github.com/felipeucelli/pytubefix.git
 tornado
 pytz
 cloudscraper

@@ -10,6 +10,11 @@ fly.toml
 config.ini
 cipher.py
 
+# pyvenv stuff
+bin
+lib64
+pyvenv.cfg
+
 # Youtube started requiring a login. This is my auth token.
 # After created manually/locally, it is copied from /usr/lib/python3.##/site-packages/pytube/__cache__/
 tokens.json
