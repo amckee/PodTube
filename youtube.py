@@ -277,7 +277,7 @@ def get_youtube_url(video):
         vid = yt.streams.get_highest_resolution().url
         logging.debug( "Highest resultion URL: %s: " % vid )
     except Exception as e:
-        logging.error( "Failed to get video URL:\n%e" )
+        logging.error( "Failed to get video URL:\n%s" % e.msg )
         return None
 
     parts = {
