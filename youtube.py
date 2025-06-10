@@ -728,7 +728,7 @@ class VideoHandler(web.RequestHandler):
         if type(yt_url) == str:
             logging.debug("Got video URL: %s" % yt_url)
             self.redirect( yt_url )
-        else if yt_url is None:
+        elif yt_url is None:
             self.write( "Video not found: %s" % video )
             self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates")
         else:
