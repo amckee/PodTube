@@ -273,8 +273,12 @@ def get_youtube_url(video):
     except Exception as e:
         logging.error( "Failed to get stream count." )
 
-    vid = yt.streams.get_highest_resolution().url
-    logging.debug( "Highest resultion URL: %s: " % vid )
+    try:
+        vid = yt.streams.get_highest_resolution().url
+        logging.debug( "Highest resultion URL: %s: " % vid )
+    except Exception as e:
+        logging.error( "Failed to get video URL:\n%e" )
+        return None
 
     parts = {
         part.split('=')[0]: part.split('=')[1]
@@ -724,6 +728,9 @@ class VideoHandler(web.RequestHandler):
         if type(yt_url) == str:
             logging.debug("Got video URL: %s" % yt_url)
             self.redirect( yt_url )
+        else if yt_url is None:
+            self.write( "Video not found: %s" % video )
+            self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates")
         else:
             self.write( "Error returned by Youtube: %s - %s" % (yt_url.code, yt_url.msg) )
             self.write( "<br/>https://www.youtube.com/watch?v=%s" % video ) #this helps with debugging
