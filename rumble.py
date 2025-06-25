@@ -503,7 +503,7 @@ def get_rumble_url( video, bitrate=None ):
     if vidurl is None:
         logging.error( "Failed to get video: %s" % video)
     else:
-        logging.info( "Got the video URL: %s" % vidurl )
+        logging.info( "Found URL: %s" % vidurl )
 
     return vidurl
 
