@@ -1,7 +1,10 @@
 bitchute_sample*
+rumble_sample*
+
+yt_dlp_testing.py
+
 start
 geckodriver.log
-rumble_sample*
 .vscode
 audio
 *notes
@@ -146,4 +149,3 @@ audio/
 .venv
 
 *.lock
-cipher.new.py
