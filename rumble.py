@@ -474,37 +474,34 @@ def get_rumble_url( video, bitrate=None ):
         else:
             ## First try to get video
             try:
-                # Resort to default bitrate video. 240p first, 360p second, anything at all third
-                for res in ('240', '360', '480'):
-                    if res in vidInfo[0]:
-                        vid = vidInfo[0].get(res)
-                        if vid is not None:
-                            logging.info("Grabbing %sp video" % res)
-                            vidurl = vid['url']
-                            break
-                    else:
-                        logging.info("%s not found in video JSON" % res)
-            except Exception as e:
-                logging.error( "Failed to get video: %s - %s" % (video, e) )
-                logging.info( "Will try to get audio track")
-                if vidInfo['u']['audio'] is not None:
-                    vidurl = vidInfo['u']['audio']['url']
-                    logging.info("Found audio track")
+                if 0 in vidInfo and len(vidInfo[0]) > 1:
+                    # Resort to default bitrate video. 240p first, 360p second, anything at all third
+                    for res in ('240', '360', '480'):
+                        if res in vidInfo[0]:
+                            vid = vidInfo[0].get(res)
+                            if vid is not None:
+                                logging.info("Grabbing %sp video" % res)
+                                vidurl = vid['url']
+                                break
+                        else:
+                            logging.info("%s not found in video JSON" % res)
                 else:
-                    logging.error( "Failed to find audio track: %s" % video)
+                    logging.error("Video JSON is empty")
+                    logging.info( "Will try to get audio track")
+                    if vidInfo['u']['audio'] is not None:
+                        vidurl = vidInfo['u']['audio']['url']
+                        logging.info("Found audio track")
+                    else:
+                        logging.error( "Failed to find audio track: %s" % video)
 
-                if vidurl is None:
-                    for vid in vidInfo[0]:
-                        if vidInfo[0][vid]['url'] is not None:
-                            logging.info("Found %sp format" % vid)
-                            vidurl = vidInfo[0][vid]['url']
-                            break
-
-    if vidurl is None:
-        logging.error( "Failed to get video: %s" % video)
-    else:
-        logging.info( "Found URL: %s" % vidurl )
-
+                    if vidurl is None:
+                        for vid in vidInfo[0]:
+                            if vidInfo[0][vid]['url'] is not None:
+                                logging.info("Found %sp format" % vid)
+                                vidurl = vidInfo[0][vid]['url']
+                                break
+            except Exception as e:
+                logging.error( "Failed to get video and audio: %s - %s" % (video, e) )
     return vidurl
 
 class VideoHandler(web.RequestHandler):
@@ -514,4 +511,8 @@ class VideoHandler(web.RequestHandler):
         if bitrate is not None:
             logging.info("Requesting bitrate: %s" % bitrate)
         vid = get_rumble_url(video, bitrate)
-        self.redirect( vid )
+        if vid is not None:
+            self.redirect( vid )
+        else:
+            self.set_status( 404 )
+            self.finish()
