@@ -277,7 +277,8 @@ def get_youtube_url(video):
         vid = yt.streams.get_highest_resolution().url
         logging.debug( "Highest resultion URL: %s: " % vid )
     except Exception as e:
-        logging.error( "Failed to get video URL:\n%s" % e.msg )
+        logging.error( "Failed to get video URL of %s" % video )
+        # logging.error( "Failed to get video URL:\n%s" % e.msg )
         return None
 
     parts = {
@@ -715,7 +716,8 @@ class PlaylistHandler(web.RequestHandler):
 class VideoHandler(web.RequestHandler):
     def get(self, video):
         """
-        Get the video URL from YouTube using the provided video ID, and handle the redirection or error response accordingly.
+        Get the video URL from YouTube using the provided video ID,
+        and handle the redirection or error response accordingly.
 
         Parameters:
             video (str): The ID of the video to retrieve from YouTube.
