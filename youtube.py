@@ -275,9 +275,10 @@ def get_youtube_url(video):
             logging.debug( "Highest resultion URL: %s", vid )
         except Exception as e:
             logging.error( "Failed to get video URL: %s", e )
+            return e
     except Exception as e:
         logging.error( "Failed to get stream count: %s", e )
-
+        return e
 
     parts = {
         part.split('=')[0]: part.split('=')[1]
@@ -1078,7 +1079,7 @@ class ClearCacheHandler(web.RequestHandler):
         self.write('<link rel="shortcut icon" href="favicon.ico">')
         self.write('</head><body>')
 
-        self.write(f"<label>Clear cache</label>")
+        self.write("<label>Clear cache</label>")
         self.write("<br/><br/>")
         self.write("<form method='POST'>")
         self.write(f"<label for='{ClearCacheHandler.VIDEO_LINKS}'>Cached video links: </label>")
