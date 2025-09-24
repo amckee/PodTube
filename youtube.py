@@ -252,14 +252,14 @@ def get_youtube_url(video):
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
     yturl = f"https://www.youtube.com/watch?v={video}"
-    logging.debug( f"Full URL: {yturl}" )
+    logging.debug( "Full URL: %s", yturl )
 
     yt = None
 
     try:
         yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='MWEB')
     except Exception as e:
-        logging.error( f"Error returned by Youtube: {e}" )
+        logging.error( "Error returned by Youtube: %s", e )
         return e
 
     # # run a quick playability check
@@ -269,16 +269,15 @@ def get_youtube_url(video):
 
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
     try:
-        logging.debug( f"Stream count: {len(yt.streams)}" )
+        logging.debug( "Stream count: %s", len(yt.streams) )
+        try:
+            vid = yt.streams.get_highest_resolution().url
+            logging.debug( "Highest resultion URL: %s", vid )
+        except Exception as e:
+            logging.error( "Failed to get video URL: %s", e )
     except Exception as e:
-        logging.error( f"Failed to get stream count: {e}" )
+        logging.error( "Failed to get stream count: %s", e )
 
-    try:
-        vid = yt.streams.get_highest_resolution().url
-        logging.debug( f"Highest resultion URL: {vid}" )
-    except Exception as e:
-        logging.error( f"Failed to get video URL of {video}: {e}" )
-        return None
 
     parts = {
         part.split('=')[0]: part.split('=')[1]
@@ -331,7 +330,7 @@ class ChannelHandler(web.RequestHandler):
         global key
         maxPages = self.get_argument('max', None)
         if maxPages:
-            logging.info("Will grab videos from a maximum of %s pages" % maxPages)
+            logging.info( "Will grab videos from a maximum of %s pages", maxPages )
 
         channel = channel.split('/')
         if len(channel) < 2:
@@ -355,7 +354,8 @@ class ChannelHandler(web.RequestHandler):
         }
         request = requests.get(
              'https://www.googleapis.com/youtube/v3/channels',
-             params=payload
+             params=payload,
+             timeout=10
         )
         calls += 1
         if request.status_code != 200:
@@ -369,7 +369,8 @@ class ChannelHandler(web.RequestHandler):
             }
             request = requests.get(
                 'https://www.googleapis.com/youtube/v3/channels',
-                params=payload
+                params=payload,
+                timeout=10
             )
             calls += 1
         if request.status_code == 200:
@@ -416,7 +417,7 @@ class ChannelHandler(web.RequestHandler):
         fg.podcast.itunes_author(channel_data['title'])
         fg.image(channel_data['thumbnails'][icon]['url'])
         fg.link(
-            href=f'https://www.youtube.com/channel/%s' % channel[0],
+            href=f'https://www.youtube.com/channel/{channel[0]}',
             rel='self'
         )
         fg.language('en-US')
@@ -447,7 +448,8 @@ class ChannelHandler(web.RequestHandler):
             }
             request = requests.get(
                 'https://www.googleapis.com/youtube/v3/playlistItems',
-                params=payload
+                params=payload,
+                timeout=10
             )
             calls += 1
             response = request.json()
@@ -511,7 +513,7 @@ class ChannelHandler(web.RequestHandler):
         for chan in channel_name:
             channel_feed[chan] = feed
 
-        logging.info("Got %s videos from %s pages" % (itemCount, pageCount))
+        logging.info( "Got %s videos from %s pages", (itemCount, pageCount) )
 
         self.write(feed['feed'])
         self.finish()
@@ -577,7 +579,8 @@ class PlaylistHandler(web.RequestHandler):
         }
         request = requests.get(
             'https://www.googleapis.com/youtube/v3/playlists',
-            params=payload
+            params=payload,
+            timeout=10
         )
         calls += 1
         if request.status_code == 200:
@@ -640,7 +643,8 @@ class PlaylistHandler(web.RequestHandler):
             }
             request = requests.get(
                 'https://www.googleapis.com/youtube/v3/playlistItems',
-                params=payload
+                params=payload,
+                timeout=10
             )
             calls += 1
             response = request.json()
@@ -682,7 +686,7 @@ class PlaylistHandler(web.RequestHandler):
                         url=final_url,
                         type="audio/mpeg"
                     )
-                logging.debug( "Final URL created for enclosure: %s" % final_url )
+                logging.debug( "Final URL created for enclosure: %s", final_url )
                 fe.author(name=snippet['channelTitle'])
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
@@ -727,14 +731,14 @@ class VideoHandler(web.RequestHandler):
         logging.info('Getting Video: %s', video)
         yt_url = get_youtube_url(video)
         if type(yt_url) == str:
-            logging.debug("Got video URL: %s" % yt_url)
+            logging.debug( "Got video URL: %s", yt_url )
             self.redirect( yt_url )
         elif yt_url is None:
-            self.write( "Video not found: %s" % video )
+            self.write( f"Video not found: {video}" )
             self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates")
         else:
-            self.write( "Error returned by Youtube: %s - %s" % (yt_url.code, yt_url.msg) )
-            self.write( "<br/>https://www.youtube.com/watch?v=%s" % video ) #this helps with debugging
+            self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
+            self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
@@ -913,7 +917,7 @@ class UserHandler(web.RequestHandler):
         Returns:
             str: The canonical URL if found, otherwise None.
         """
-        logging.info("Getting canonical for %s" % url)
+        logging.info( "Getting canonical for %s", url )
         req = requests.get( url )
         if req.status_code == 200:
             from bs4 import BeautifulSoup
@@ -949,7 +953,7 @@ class UserHandler(web.RequestHandler):
             return channel_name_to_id[username]['id']
         yt_url = f"https://www.youtube.com/@{username}/about"
         canon_url = self.get_canonical( yt_url )
-        logging.debug('Canonical url: %s' % canon_url)
+        logging.debug( 'Canonical url: %s', canon_url )
         if canon_url is None:
             return None
         token_index = canon_url.rfind("/") + 1
@@ -970,7 +974,7 @@ class UserHandler(web.RequestHandler):
         Returns:
             None
         """
-        logging.debug('Handling Youtube channel by name: %s' % username)
+        logging.debug( 'Handling Youtube channel by name: %s', username )
         append = None
         append_index = username.find('/')
         if append_index > -1:
@@ -979,12 +983,12 @@ class UserHandler(web.RequestHandler):
         channel_token = self.get_channel_token(username)
 
         if channel_token is None:
-            logging.error("Failed to get canonical URL of %s" % username)
+            logging.error( "Failed to get canonical URL of %s", username )
         else:
             selfurl = self.channel_handler_path + channel_token
             if append is not None:
                 selfurl += append
-            logging.info('Redirect to %s' % selfurl)
+            logging.info( 'Redirect to %s', selfurl )
             self.redirect( selfurl, permanent = False )
         return None
 
