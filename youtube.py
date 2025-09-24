@@ -251,15 +251,15 @@ def get_youtube_url(video):
     """
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
-    yturl = "https://www.youtube.com/watch?v=%s" % video
-    logging.debug("Full URL: %s" % yturl)
+    yturl = f"https://www.youtube.com/watch?v={video}"
+    logging.debug( f"Full URL: {yturl}" )
 
     yt = None
 
     try:
         yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='MWEB')
     except Exception as e:
-        logging.error( "Error returned by Youtube: %s - %s" % (e.status, e.msg) )
+        logging.error( f"Error returned by Youtube: {e}" )
         return e
 
     # # run a quick playability check
@@ -269,16 +269,15 @@ def get_youtube_url(video):
 
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
     try:
-        logging.debug( "Stream count: %s" % len(yt.streams) )
+        logging.debug( f"Stream count: {len(yt.streams)}" )
     except Exception as e:
-        logging.error( "Failed to get stream count." )
+        logging.error( f"Failed to get stream count: {e}" )
 
     try:
         vid = yt.streams.get_highest_resolution().url
-        logging.debug( "Highest resultion URL: %s: " % vid )
+        logging.debug( f"Highest resultion URL: {vid}" )
     except Exception as e:
-        logging.error( "Failed to get video URL of %s" % video )
-        # logging.error( "Failed to get video URL:\n%s" % e.msg )
+        logging.error( f"Failed to get video URL of {video}: {e}" )
         return None
 
     parts = {
