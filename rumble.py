@@ -515,7 +515,9 @@ class VideoHandler(web.RequestHandler):
             logging.info("Rumble: Requesting bitrate: %s", bitrate)
         vid = get_rumble_url(video, bitrate)
         if vid is not None:
+            logging.info("Rumble: Redirecting to: %s", vid)
             self.redirect( vid )
         else:
+            logging.error("Rumble: Failed to find video: %s", video)
             self.set_status( 404 )
             self.finish()
