@@ -19,7 +19,7 @@ class ChannelHandler(web.RequestHandler):
         logging.debug( "Got channel: %s" % channel )
 
         url = "https://rumble.com/c/%s" % channel
-        logging.info( "Handling Rumble URL: %s" % url )
+        logging.info( "Rumble: Handling URL: %s" % url )
 
         self.set_header('Content-type', 'application/rss+xml')
         feed = self.generate_rss( channel )
@@ -28,14 +28,13 @@ class ChannelHandler(web.RequestHandler):
 
     def get_html( self, channel ):
         url = "https://rumble.com/c/%s" % channel
-        logging.info("Rumble URL: %s" % url)
         r = requests.get( url, headers=headers )
         bs = BeautifulSoup( r.text, "lxml" )
         html = str( bs.find("main") )
         return html
 
     def generate_rss( self, channel ):
-        logging.info("Channel: %s" % channel)
+        logging.info("Rumble: Generating RSS for Channel: %s" % channel)
         bs = BeautifulSoup( self.get_html( channel ), "lxml" )
 
         feed = FeedGenerator()
@@ -48,17 +47,17 @@ class ChannelHandler(web.RequestHandler):
             if channel_title:
                 feed.title( channel_title )
             else:
-                logging.error("Failed to pull channel title. Using provided channel instead")
+                logging.error("Rumble: Failed to pull channel title. Using provided channel instead")
                 feed.title( channel )
         else:
-            logging.error("Failed to pull channel title. Using provided channel instead")
+            logging.error("Rumble: Failed to pull channel title. Using provided channel instead")
             feed.title( channel )
 
         thumb = bs.find("img", "channel-header--img")
         if thumb:
             feed.image( thumb['src'] )
         else:
-            logging.error("Channel thumbnail not found")
+            logging.error("Rumble: Channel thumbnail not found")
 
         feed.description( "--" )
         feed.id( channel )
@@ -83,14 +82,14 @@ class ChannelHandler(web.RequestHandler):
                     or video.find("div", "videostream__status--live") \
                     or video.find("div", "videostream__footer--live"):
                     vidTitle = video.find("h3", "thumbnail__title")
-                    logging.info("Skipping live/upcoming video: %s" % vidTitle.text.strip())
+                    logging.info("Rumble: Skipping live/upcoming video: %s" % vidTitle.text.strip())
                     continue
 
                 ## Check for and skip premium videos
                 el = video.find("span", "text-link-green")
                 if el and el.text == "Premium only":
                     vidTitle = video.find("h3", "thumbnail__title")
-                    logging.info("Skipping premium video: %s" % vidTitle.text.strip())
+                    logging.info("Rumble: Skipping premium video: %s" % vidTitle.text.strip())
 
                 ## Gather channel information
                 item = feed.add_entry()
@@ -100,7 +99,7 @@ class ChannelHandler(web.RequestHandler):
                 if vidtitle:
                     item.title( vidtitle.text.strip() )
                 else:
-                    logging.info("Failed to pull video thumbnail.")
+                    logging.info("Rumble: Failed to pull video thumbnail.")
 
                 viddesc = video.find("div", "videostream__description")
                 if viddesc:
@@ -112,7 +111,7 @@ class ChannelHandler(web.RequestHandler):
                 if vid:
                     vid = vid['href']
                 else:
-                    logging.info("Failed to pull URL to video.")
+                    logging.info("Rumble: Failed to pull URL to video.")
 
                 link = f'http://{self.request.host}/rumble/video' + vid
                 item.link(
@@ -124,14 +123,14 @@ class ChannelHandler(web.RequestHandler):
                 if vidduration:
                     item.podcast.itunes_duration( vidduration.text.strip() )
                 else:
-                    logging.info("Failed to pull video duration.")
+                    logging.info("Rumble: Failed to pull video duration.")
 
                 viddatetime = video.find("time", "videostream__time")
                 if viddatetime:
                     date = dateutil.parser.parse( viddatetime['datetime'] )
                     item.pubDate( date )
                 else:
-                    logging.info("Failed to pull video date.")
+                    logging.info("Rumble: Failed to pull video date.")
 
                 item.enclosure(
                     url = link,
@@ -400,7 +399,7 @@ class CategoryHandler(web.RequestHandler):
 
 def get_rumble_url( video, bitrate=None ):
     url = "https://rumble.com/%s" % video
-    logging.debug( "Getting URL: %s" % url )
+    logging.debug( "Rumble: Getting: %s" % url )
 
     ## first, we need to get the embed url from the data set
     headers = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.104 Safari/537.36' }
@@ -408,10 +407,10 @@ def get_rumble_url( video, bitrate=None ):
 
     # Check for errors from Rumble directly
     if r.status_code == 410:
-        logging.error( "Rumble returned 410: Not found" )
+        logging.error( "Rumble: Returned 410: Not found" )
         return url
     elif r.status_code == 403:
-        logging.error( "Rumble returned 403: Forbidden" )
+        logging.error( "Rumble: Returned 403: Forbidden" )
         return url
 
     bs = BeautifulSoup( r.text, 'lxml' )
@@ -420,7 +419,7 @@ def get_rumble_url( video, bitrate=None ):
     dat=json.loads(bs.find("script", type="application/ld+json").string)
 
     vidurl = dat[0]['embedUrl']
-    logging.info( "Found embedded URL: %s" % vidurl )
+    logging.info( "Rumble: Found embedded URL: %s" % vidurl )
 
     embedVidID = vidurl.rstrip('/').split('/')[-1]
 
@@ -442,7 +441,7 @@ def get_rumble_url( video, bitrate=None ):
     try:
         regexSearch = re.search( r';[b|f|h|v|m|y]\.f\["%s"\]=.*:[a|d|f|u]\(\)\}' % embedVidID, el ).group().replace( r';y.f["%s"]=' % embedVidID, '').replace( r';m.f["%s"]=' % embedVidID, '').replace( r';b.f["%s"]=' % embedVidID, '' ).replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r';h.f["%s"]=' % embedVidID, '' ).replace( r';v.f["%s"]=' % embedVidID, '').replace( r',loaded:f()', '' ).replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' ).replace( r',loaded:u()', '')
     except Exception as e:
-        logging.error( "Failed to parse JSON data:\n%s", e )
+        logging.error( "Rumble: Failed to parse JSON data:\n%s", e )
 
     # try: #again
     #     regexSearch = re.search( )
@@ -450,20 +449,20 @@ def get_rumble_url( video, bitrate=None ):
 
     if regexSearch is not None:
         vidInfo = json.loads( regexSearch )
-        logging.debug("Successfully parsed JSON data")
+        logging.debug("Rumble: Successfully parsed JSON data")
         for thing in ('ua', 'u'):
             if thing in vidInfo:
                 if 'mp4' in vidInfo[thing]:
                     if '360' in vidInfo[thing]['mp4']:
-                        logging.info('Found 360p video')
+                        logging.info('Rumble: Found 360p video')
                         vidurl = vidInfo[thing]['mp4']['360']['url']
                     elif '480' in vidInfo[thing]['mp4']:
-                        logging.info('Found 480p video')
+                        logging.info('Rumble: Found 480p video')
                         vidurl = vidInfo[thing]['mp4']['480']['url']
 
     ## Fallback method, in case the above code failed to find anything
     if vidurl is None:
-        logging.info("Using fallback Rumble 'geturl' method")
+        logging.info("Rumble: Using fallback Rumble 'geturl' method")
         if bitrate is not None:
             # find the requested bitrate video
             for vid in vidInfo[0]:
@@ -480,36 +479,36 @@ def get_rumble_url( video, bitrate=None ):
                         if res in vidInfo[0]:
                             vid = vidInfo[0].get(res)
                             if vid is not None:
-                                logging.info("Grabbing %sp video" % res)
+                                logging.info("Rumble: Grabbing %sp video" % res)
                                 vidurl = vid['url']
                                 break
                         else:
-                            logging.info("%s not found in video JSON" % res)
+                            logging.info("Rumble: %s not found in video JSON" % res)
                 else:
-                    logging.error("Video JSON is empty")
-                    logging.info( "Will try to get audio track")
+                    logging.error("Rumble: Video JSON is empty")
+                    logging.info( "Rumble: Will try to get audio track")
                     if vidInfo['u']['audio'] is not None:
                         vidurl = vidInfo['u']['audio']['url']
-                        logging.info("Found audio track")
+                        logging.info("Rumble: Found audio track")
                     else:
-                        logging.error( "Failed to find audio track: %s" % video)
+                        logging.error( "Rumble: Failed to find audio track: %s" % video)
 
                     if vidurl is None:
                         for vid in vidInfo[0]:
                             if vidInfo[0][vid]['url'] is not None:
-                                logging.info("Found %sp format" % vid)
+                                logging.info("Rumble: Found %sp format" % vid)
                                 vidurl = vidInfo[0][vid]['url']
                                 break
             except Exception as e:
-                logging.error( "Failed to get video and audio: %s - %s" % (video, e) )
+                logging.error( "Rumble: Failed to get video and audio: %s - %s" % (video, e) )
     return vidurl
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.debug("Rumble Video: %s" % video)
+        logging.debug("Rumble: Rumble Video: %s" % video)
         bitrate = None
         if bitrate is not None:
-            logging.info("Requesting bitrate: %s" % bitrate)
+            logging.info("Rumble: Requesting bitrate: %s" % bitrate)
         vid = get_rumble_url(video, bitrate)
         if vid is not None:
             self.redirect( vid )
