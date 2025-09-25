@@ -115,7 +115,7 @@ def cleanup():
     }
     video_links_length -= len(video_links)
     if video_links_length:
-        logging.info('Cleaned %s items from video list', video_links_length)
+        logging.info( 'YouTube: Cleaned %s items from video list', video_links_length )
     # Playlist Feeds
     playlist_feed_length = len(playlist_feed)
     playlist_feed = {
@@ -127,7 +127,7 @@ def cleanup():
     playlist_feed_length -= len(playlist_feed)
     if playlist_feed_length:
         logging.info(
-            'Cleaned %s items from playlist feeds',
+            'YouTube: Cleaned %s items from playlist feeds',
             playlist_feed_length
         )
     # Channel Feeds
@@ -141,7 +141,7 @@ def cleanup():
     channel_feed_length -= len(channel_feed)
     if channel_feed_length:
         logging.info(
-            'Cleaned %s items from channel feeds',
+            'YouTube: Cleaned %s items from channel feeds',
             channel_feed_length
         )
     # Channel Feeds
@@ -155,7 +155,7 @@ def cleanup():
     channel_name_to_id_length -= len(channel_name_to_id)
     if channel_name_to_id_length:
         logging.info(
-            'Cleaned %s items from channel name map',
+            'YouTube: Cleaned %s items from channel name map',
             channel_name_to_id_length
         )
     # Space Check
@@ -169,9 +169,9 @@ def cleanup():
         if time_clean or size_clean:
             try:
                 os.remove(f)
-                logging.info('Deleted %s', f)
+                logging.info( 'YouTube: Deleted %s', f )
             except Exception as ex:
-                logging.error('Error remove file %s: %s', f, ex)
+                logging.error( 'YouTube: Error remove file %s: %s', f, ex )
             if not time_clean and size_clean and size.free > stop_cleanup_size_threshold:
                 break
         else:
@@ -203,7 +203,7 @@ def convert_videos():
     except Exception:
         return
     with (yield converting_lock.acquire()):
-        logging.info('Converting: %s', video)
+        logging.info( 'YouTube: Converting: %s', video )
         audio_file = './audio/{}.mp3'.format(video)
         try:
             yutubeUrl = get_youtube_url(video)
@@ -216,9 +216,9 @@ def convert_videos():
             ])
             yield ffmpeg_process.wait_for_exit()
             os.rename(audio_file + '.temp', audio_file)
-            logging.info('Successfully converted: %s', video)
+            logging.info( 'YouTube: Successfully converted: %s', video )
         except Exception as ex:
-            logging.error('Error converting file: %s', ex)
+            logging.error( 'YouTube: Error converting file: %s', ex )
             if isinstance(ex, (exceptions.LiveStreamError, exceptions.VideoUnavailable)):
                 if video not in video_links:
                     video_links[video] = {
@@ -230,14 +230,14 @@ def convert_videos():
                 if os.path.exists(audio_file):
                     os.remove(audio_file)
             except Exception as ex2:
-                logging.error('Error remove broken file: %s', ex2)
+                logging.error( 'YouTube: Error remove broken file: %s', ex2 )
         finally:
             del conversion_queue[video]
             try:
                 if os.path.exists(audio_file + '.temp'):
                     os.remove(audio_file + '.temp')
             except Exception as ex2:
-                logging.error('Error remove temp file: %s', ex2)
+                logging.error( 'YouTube: Error remove temp file: %s', ex2 )
 
 def get_youtube_url(video):
     """
@@ -252,14 +252,14 @@ def get_youtube_url(video):
     if video in video_links and video_links[video]['expire'] > datetime.datetime.now():
         return video_links[video]['url']
     yturl = f"https://www.youtube.com/watch?v={video}"
-    logging.debug( "Full URL: %s", yturl )
+    logging.debug( 'YouTube: Full URL: %s', yturl )
 
     yt = None
 
     try:
         yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True)
     except Exception as e:
-        logging.error( "Error returned by Youtube: %s", e )
+        logging.error( 'YouTube: Error returned by Youtube: %s', e )
         return e
 
     # # run a quick playability check
@@ -269,15 +269,15 @@ def get_youtube_url(video):
 
     #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
     try:
-        logging.debug( "Stream count: %s", len(yt.streams) )
+        logging.debug( 'YouTube: Stream count: %s', len(yt.streams) )
         try:
             vid = yt.streams.get_highest_resolution().url
-            logging.debug( "Highest resultion URL: %s", vid )
+            logging.debug( 'YouTube: Highest resultion URL: %s', vid )
         except Exception as e:
-            logging.error( "Failed to get video URL: %s", e )
+            logging.error( 'YouTube: Failed to get video URL: %s', e )
             return e
     except Exception as e:
-        logging.error( "Failed to get stream count: %s", e )
+        logging.error( 'YouTube: Failed to get stream count: %s', e )
         return e
 
     parts = {
@@ -331,7 +331,7 @@ class ChannelHandler(web.RequestHandler):
         global key
         maxPages = self.get_argument('max', None)
         if maxPages:
-            logging.info( "Will grab videos from a maximum of %s pages", maxPages )
+            logging.info( 'YouTube: Will grab videos from a maximum of %s pages', maxPages )
 
         channel = channel.split('/')
         if len(channel) < 2:
@@ -375,9 +375,9 @@ class ChannelHandler(web.RequestHandler):
             )
             calls += 1
         if request.status_code == 200:
-            logging.debug('Downloaded Channel Information')
+            logging.debug( 'YouTube: Downloaded Channel Information' )
         else:
-            logging.error('Error Downloading Channel: %s', request.reason)
+            logging.error( 'YouTube: Error Downloading Channel: %s', request.reason )
             self.send_error(reason='Error Downloading Channel')
             return
         response = request.json()
@@ -397,10 +397,10 @@ class ChannelHandler(web.RequestHandler):
             'https://github.com/amckee/PodTube'
         )
         if 'title' not in channel_data:
-            logging.info("Channel title not found")
+            logging.info( 'YouTube: Channel title not found' )
             channel_data['title'] = channel[0]
         logging.info(
-            'Channel: %s (%s)',
+            'YouTube: Channel: %s (%s)',
             channel[0],
             channel_data['title']
         )
@@ -437,7 +437,7 @@ class ChannelHandler(web.RequestHandler):
         while 'nextPageToken' in response.keys():
             pageCount += 1
             if maxPages and (pageCount > int(maxPages)):
-                logging.info("Reached maximum number of pages. Stopping here.")
+                logging.info( 'YouTube: Reached maximum number of pages. Stopping here.' )
                 break
             next_page = response['nextPageToken']
             payload = {
@@ -455,9 +455,9 @@ class ChannelHandler(web.RequestHandler):
             calls += 1
             response = request.json()
             if request.status_code == 200:
-                logging.debug('Downloaded Channel Information')
+                logging.debug( 'YouTube: Downloaded Channel Information' )
             else:
-                logging.error('Error Downloading Channel: %s', request.reason)
+                logging.error( 'YouTube: Error Downloading Channel: %s', request.reason )
                 self.send_error(reason='Error Downloading Channel')
                 return
             for item in response['items']:
@@ -470,10 +470,10 @@ class ChannelHandler(web.RequestHandler):
                     chan=snippet['channelTitle']
                 except KeyError:
                     snippet['channelTitle'] = snippet['channelId']
-                    logging.error("Channel title not found")
+                    logging.error( 'YouTube: Channel title not found' )
 
                 logging.debug(
-                    'ChannelVideo: %s (%s)',
+                    'YouTube: ChannelVideo: %s (%s)',
                     current_video,
                     snippet['title']
                 )
@@ -585,9 +585,9 @@ class PlaylistHandler(web.RequestHandler):
         )
         calls += 1
         if request.status_code == 200:
-            logging.debug('Downloaded Playlist Information')
+            logging.debug( 'YouTube: Downloaded Playlist Information' )
         else:
-            logging.error('Error Downloading Playlist: %s', request.reason)
+            logging.error( 'YouTube: Error Downloading Playlist: %s', request.reason )
             self.send_error(reason='Error Downloading Playlist')
             return
         response = request.json()
@@ -604,7 +604,7 @@ class PlaylistHandler(web.RequestHandler):
             key=lambda x: snippet['thumbnails'][x]['width']
         )
         logging.info(
-            'Playlist: %s (%s)',
+            'YouTube: Playlist: %s (%s)',
             playlist[0],
             snippet['title']
         )
@@ -650,9 +650,9 @@ class PlaylistHandler(web.RequestHandler):
             calls += 1
             response = request.json()
             if request.status_code == 200:
-                logging.debug('Downloaded Playlist Information')
+                logging.debug( 'YouTube: Downloaded Playlist Information' )
             else:
-                logging.error('Error Downloading Playlist: %s', request.reason)
+                logging.error( 'YouTube: Error Downloading Playlist: %s', request.reason )
                 self.send_error(reason='Error Downloading Playlist Items')
                 return
             for item in response['items']:
@@ -661,7 +661,7 @@ class PlaylistHandler(web.RequestHandler):
                 if 'Private' in snippet['title']:
                     continue
                 logging.debug(
-                    'PlaylistVideo: %s (%s)',
+                    'YouTube: PlaylistVideo: %s (%s)',
                     current_video,
                     snippet['title']
                 )
@@ -687,7 +687,7 @@ class PlaylistHandler(web.RequestHandler):
                         url=final_url,
                         type="audio/mpeg"
                     )
-                logging.debug( "Final URL created for enclosure: %s", final_url )
+                logging.debug( 'YouTube: Final URL created for enclosure: %s', final_url )
                 fe.author(name=snippet['channelTitle'])
                 fe.podcast.itunes_author(snippet['channelTitle'])
                 fe.pubDate(snippet['publishedAt'])
@@ -729,10 +729,10 @@ class VideoHandler(web.RequestHandler):
         Returns:
             None
         """
-        logging.info( 'Getting Video: %s', video )
+        logging.info( 'YouTube: Getting Video: %s', video )
         yt_url = get_youtube_url( video )
         if type(yt_url) == str:
-            logging.debug( "Got video URL: %s", yt_url )
+            logging.debug( 'YouTube: Got video URL: %s', yt_url )
             self.redirect( yt_url )
         elif yt_url is None:
             self.write( f"Video not found: {video}" )
@@ -768,7 +768,7 @@ class AudioHandler(web.RequestHandler):
         """
         A coroutine function that handles the GET request for audio files. It checks if the requested audio is available and, if so, streams the audio content to the client. If the audio is not available or an error occurs during the conversion, appropriate status codes are set and returned.
         """
-        logging.info('Audio: %s (%s)', audio, self.request.remote_ip)
+        logging.info( 'YouTube: Audio: %s (%s)', audio, self.request.remote_ip )
         if audio in video_links and 'unavailable' in video_links[audio] and video_links[audio]['unavailable'] == True:
             # logging.info('Audio: %s is not available (%s)', audio, self.request.remote_ip)
             self.set_status(422) # Unprocessable Content. E.g. the video is a live stream
@@ -892,7 +892,7 @@ class AudioHandler(web.RequestHandler):
         """
         Handle the event when the connection is closed. It sets the 'disconnected' attribute to True.
         """
-        logging.warning('Audio: User quit during transcoding (%s)', self.request.remote_ip)
+        logging.warning( 'YouTube: User quit during transcoding (%s)', self.request.remote_ip )
         self.disconnected = True
 
 class UserHandler(web.RequestHandler):
@@ -918,7 +918,7 @@ class UserHandler(web.RequestHandler):
         Returns:
             str: The canonical URL if found, otherwise None.
         """
-        logging.info( "Getting canonical for %s", url )
+        logging.info( 'YouTube: Getting canonical for %s', url )
         req = requests.get( url )
         if req.status_code == 200:
             from bs4 import BeautifulSoup
@@ -975,7 +975,7 @@ class UserHandler(web.RequestHandler):
         Returns:
             None
         """
-        logging.debug( 'Handling Youtube channel by name: %s', username )
+        logging.debug( 'YouTube: Handling Youtube channel by name: %s', username )
         append = None
         append_index = username.find('/')
         if append_index > -1:
@@ -984,12 +984,12 @@ class UserHandler(web.RequestHandler):
         channel_token = self.get_channel_token(username)
 
         if channel_token is None:
-            logging.error( "Failed to get canonical URL of %s", username )
+            logging.error( 'YouTube: Failed to get canonical URL of %s', username )
         else:
             selfurl = self.channel_handler_path + channel_token
             if append is not None:
                 selfurl += append
-            logging.info( 'Redirect to %s', selfurl )
+            logging.info( 'YouTube: Redirect to %s', selfurl )
             self.redirect( selfurl, permanent = False )
         return None
 
@@ -1022,58 +1022,58 @@ class ClearCacheHandler(web.RequestHandler):
         channelNameToId = self.get_argument(ClearCacheHandler.CHANNEL_NAME_TO_ID, ClearCacheHandler.NONE, True)
 
         if any(element != ClearCacheHandler.NONE for element in [videoFile, videoLink, playlistFeed, channelFeed, channelNameToId]):
-            logging.info('Force clear cache started (%s)', self.request.remote_ip)
+            logging.info( 'YouTube: Force clear cache started (%s)', self.request.remote_ip )
 
         if (videoFile == ClearCacheHandler.ALL):
             for f in glob.glob('./audio/*mp3'):
                 try:
                     os.remove(f)
-                    logging.info('Deleted %s', f)
+                    logging.info( 'YouTube: Deleted %s', f )
                 except Exception as e:
-                    logging.error('Error remove file %s: %s', f, e)
+                    logging.error( 'YouTube: Error remove file %s: %s', f, e )
         elif videoFile != ClearCacheHandler.NONE:
             f = f"./audio/{videoFile}"
             try:
                 os.remove(f)
-                logging.info('Deleted %s', f)
+                logging.info( 'YouTube: Deleted %s', f )
             except Exception as e:
-                logging.error('Error remove file %s: %s', f, e)
+                logging.error( 'YouTube: Error remove file %s: %s', f, e )
 
         if (videoLink == ClearCacheHandler.ALL):
             video_links_length = len(video_links)
             video_links = {}
-            logging.info('Cleaned %s items from video list', video_links_length)
+            logging.info( 'YouTube: Cleaned %s items from video list', video_links_length )
         elif videoLink != ClearCacheHandler.NONE:
             if videoLink in video_links:
                 del video_links[videoLink]
-                logging.info('Cleaned 1 items from video list')
+                logging.info( 'YouTube: Cleaned 1 items from video list' )
 
         if (playlistFeed == ClearCacheHandler.ALL):
             playlist_feed_length = len(playlist_feed)
             playlist_feed = {}
-            logging.info('Cleaned %s items from playlist feeds', playlist_feed_length)
+            logging.info( 'YouTube: Cleaned %s items from playlist feeds', playlist_feed_length )
         elif playlistFeed != ClearCacheHandler.NONE:
             if playlistFeed in playlist_feed:
                 del playlist_feed[playlistFeed]
-                logging.info('Cleaned 1 items from playlist feeds')
+                logging.info( 'YouTube: Cleaned 1 items from playlist feeds' )
 
         if (channelFeed == ClearCacheHandler.ALL):
             channel_feed_length = len(channel_feed)
             channel_feed = {}
-            logging.info('Cleaned %s items from channel feeds', channel_feed_length)
+            logging.info( 'YouTube: Cleaned %s items from channel feeds', channel_feed_length )
         elif channelFeed != ClearCacheHandler.NONE:
             if channelFeed in channel_feed:
                 del channel_feed[channelFeed]
-                logging.info('Cleaned 1 items from channel feeds')
+                logging.info( 'YouTube: Cleaned 1 items from chann  el feeds' )
 
         if (channelNameToId == ClearCacheHandler.ALL):
             channel_name_to_id_length = len(channel_name_to_id)
             channel_name_to_id = {}
-            logging.info('Cleaned %s items from channel name map', channel_name_to_id_length)
+            logging.info( 'YouTube: Cleaned %s items from channel name map', channel_name_to_id_length )
         elif channelNameToId != ClearCacheHandler.NONE:
             if channelNameToId in channel_name_to_id:
                 del channel_name_to_id[channelNameToId]
-                logging.info('Cleaned 1 items from channel name map')
+                logging.info( 'YouTube: Cleaned 1 items from channel name map' )
 
         self.write(f'<html><head><title>PodTube (v{__version__}) cache</title>')
         self.write('<link rel="shortcut icon" href="favicon.ico">')
