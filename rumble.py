@@ -485,30 +485,34 @@ def get_rumble_url( video, bitrate=None ):
                         else:
                             logging.info("Rumble: %s not found in video JSON" % res)
                 else:
-                    logging.error("Rumble: Video JSON is empty")
-                    logging.info( "Rumble: Will try to get audio track")
+                    logging.error( "Rumble: Video JSON is empty" )
+                    logging.info( "Rumble: Will try to get audio track" )
                     if vidInfo['u']['audio'] is not None:
                         vidurl = vidInfo['u']['audio']['url']
-                        logging.info("Rumble: Found audio track")
+                        logging.info( "Rumble: Found audio track at %s", vidurl )
                     else:
                         logging.error( "Rumble: Failed to find audio track: %s" % video)
 
                     if vidurl is None:
+                        logging.info( "Rumble: Last resort, trying to get anything" )
                         for vid in vidInfo[0]:
                             if vidInfo[0][vid]['url'] is not None:
                                 logging.info("Rumble: Found %sp format" % vid)
                                 vidurl = vidInfo[0][vid]['url']
+                                logging.info("Rumble: Got something! Grabbing %s" % vid)
                                 break
+                            else:
+                                logging.error("Rumble: Failed to find anything for %s", vid)
             except Exception as e:
                 logging.error( "Rumble: Failed to get video and audio: %s - %s" % (video, e) )
     return vidurl
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.debug("Rumble: Rumble Video: %s" % video)
+        logging.debug("Rumble: Rumble Video: %s", video)
         bitrate = None
         if bitrate is not None:
-            logging.info("Rumble: Requesting bitrate: %s" % bitrate)
+            logging.info("Rumble: Requesting bitrate: %s", bitrate)
         vid = get_rumble_url(video, bitrate)
         if vid is not None:
             self.redirect( vid )
