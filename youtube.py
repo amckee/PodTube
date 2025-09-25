@@ -729,14 +729,14 @@ class VideoHandler(web.RequestHandler):
         Returns:
             None
         """
-        logging.info('Getting Video: %s', video)
-        yt_url = get_youtube_url(video)
+        logging.info( 'Getting Video: %s', video )
+        yt_url = get_youtube_url( video )
         if type(yt_url) == str:
             logging.debug( "Got video URL: %s", yt_url )
             self.redirect( yt_url )
         elif yt_url is None:
             self.write( f"Video not found: {video}" )
-            self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates")
+            self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates" )
         else:
             self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
             self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
