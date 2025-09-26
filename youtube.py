@@ -764,7 +764,7 @@ class VideoHandler(web.RequestHandler):
             'format': 'best',
             'quiet': True,
             'noplaylist': True,
-            'cookies-from-browser': firefox,
+            'cookies-from-browser': 'firefox',
             'cookies': '/opt/cookies.txt',
         }
 
