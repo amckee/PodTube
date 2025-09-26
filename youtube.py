@@ -739,13 +739,34 @@ class VideoHandler(web.RequestHandler):
         elif yt_url is None:
             self.write( f"Video not found: {video}" )
             self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates" )
-        elif yt_url is RegexMatchError:
-            self.write( f"Video not found, Regex failed: {video}" )
-            self.write( "Youtube changed their codee again, breaking the cipher parser. Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates." )
         else:
-            logging.info( type(yt_url) )
-            self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
-            self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
+            logging.error( "Unknown failure to get video. Falling back to yt-dlp method" )
+            yt_url = self.ytdlp_get_url( video )
+            if isinstance(yt_url, str):
+                logging.info("yt-dlp ftw!")
+                self.redirect( yt_url )
+            else:
+                logging.error( 'YouTube: Error returned by yt-dlp: %s', yt_url )
+                # self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
+                self.write( "Error returned by Youtube: " + str(yt_url) )
+                self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
+
+    def ytdlp_get_url( self, videoid ):
+        # https://codepal.ai/code-generator/query/OOhjOSAi/retrieve-video-url-using-yt-dlp-python
+        import yt_dlp
+        URL = "https://www.youtube.com/watch?v=" + videoid
+
+        opts = {
+            'format': 'best',
+            'quiet': True,
+            'noplaylist': True,
+        }
+
+        with yt_dlp.YoutubeDL( opts ) as ydl:
+            info = ydl.extract_info( URL, download=False )
+            return info.get('url', None)
+
+        return None
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
