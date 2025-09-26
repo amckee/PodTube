@@ -733,7 +733,7 @@ class VideoHandler(web.RequestHandler):
         logging.info( 'YouTube: Getting Video: %s', video )
 
         yt_url = get_youtube_url( video )
-        if type(yt_url) == str:
+        if isinstance(yt_url, str):
             logging.debug( 'YouTube: Got video URL: %s', yt_url )
             self.redirect( yt_url )
         elif yt_url is None:
@@ -743,6 +743,7 @@ class VideoHandler(web.RequestHandler):
             self.write( f"Video not found, Regex failed: {video}" )
             self.write( "Youtube changed their codee again, breaking the cipher parser. Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates." )
         else:
+            logging.info( type(yt_url) )
             self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
             self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
 
