@@ -15,6 +15,7 @@ from feedgen.feed import FeedGenerator
 import requests
 import psutil
 from pytubefix import YouTube, exceptions
+from pytubefix.exceptions import RegexMatchError
 #from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
@@ -730,6 +731,7 @@ class VideoHandler(web.RequestHandler):
             None
         """
         logging.info( 'YouTube: Getting Video: %s', video )
+
         yt_url = get_youtube_url( video )
         if type(yt_url) == str:
             logging.debug( 'YouTube: Got video URL: %s', yt_url )
@@ -737,8 +739,8 @@ class VideoHandler(web.RequestHandler):
         elif yt_url is None:
             self.write( f"Video not found: {video}" )
             self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates" )
-        elif yt_url is exceptions.RegexMatchError:
-            self.write( f"Video not found: {video}" )
+        elif yt_url is RegexMatchError:
+            self.write( f"Video not found, Regex failed: {video}" )
             self.write( "Youtube changed their codee again, breaking the cipher parser. Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates." )
         else:
             self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
