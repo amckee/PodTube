@@ -737,6 +737,9 @@ class VideoHandler(web.RequestHandler):
         elif yt_url is None:
             self.write( f"Video not found: {video}" )
             self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates" )
+        elif yt_url is exceptions.RegexMatchError:
+            self.write( f"Video not found: {video}" )
+            self.write( "Youtube changed their codee again, breaking the cipher parser. Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates." )
         else:
             self.write( f"Error returned by Youtube: {yt_url.code} - {yt_url.msg}" )
             self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
