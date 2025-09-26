@@ -514,7 +514,7 @@ class ChannelHandler(web.RequestHandler):
         for chan in channel_name:
             channel_feed[chan] = feed
 
-        logging.info( "Got %s videos from %s pages", (itemCount, pageCount) )
+        logging.info( "Got %s videos from %s pages" % (itemCount, pageCount) )
 
         self.write(feed['feed'])
         self.finish()
