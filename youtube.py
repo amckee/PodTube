@@ -764,6 +764,7 @@ class VideoHandler(web.RequestHandler):
             'format': 'best',
             'quiet': True,
             'noplaylist': True,
+            'cookies': '/opt/cookies.txt',
         }
 
         with yt_dlp.YoutubeDL( opts ) as ydl:

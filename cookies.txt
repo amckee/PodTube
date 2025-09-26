@@ -1,0 +1,11 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+.youtube.com	TRUE	/	TRUE	1758926749	GPS	1
+.youtube.com	TRUE	/	TRUE	0	YSC	x42kcLFa9Tc
+.youtube.com	TRUE	/	TRUE	1774476951	VISITOR_INFO1_LIVE	7ZHGTWM52GA
+.youtube.com	TRUE	/	TRUE	1774476951	VISITOR_PRIVACY_METADATA	CgJVUxIEGgAgVA%3D%3D
+.youtube.com	TRUE	/	TRUE	1793484963	PREF	f6=40000000&tz=America.Chicago&f7=100
+.youtube.com	TRUE	/	FALSE	1758924965	ST-tuhr1a	disableCache=true&itct=CBIQpIEJGAQiEwiahOiHuvePAxXw7xYJHfddKx3KAQQwKjy_&csn=oaYsvjkau06GfAWo&endpoint=%7B%22clickTrackingParams%22%3A%22CBIQpIEJGAQiEwiahOiHuvePAxXw7xYJHfddKx3KAQQwKjy_%22%2C%22commandMetadata%22%3A%7B%22webCommandMetadata%22%3A%7B%22url%22%3A%22%2Fgaming%22%2C%22webPageType%22%3A%22WEB_PAGE_TYPE_CHANNEL%22%2C%22rootVe%22%3A3611%2C%22apiUrl%22%3A%22%2Fyoutubei%2Fv1%2Fbrowse%22%7D%7D%2C%22browseEndpoint%22%3A%7B%22browseId%22%3A%22UCOpNcN46UbXVtpKMrmU4Abg%22%7D%7D
+.youtube.com	TRUE	/	FALSE	1758924968	ST-1bdke36	itct=CKcBEJQ1GAAiEwiBn--LuvePAxW0aEIHHf_WJeQyBmctaGlnaFoYVUNPcE5jTjQ2VWJYVnRwS01ybVU0QWJnmgEGEPI4GJgCygEEMCo8vw%3D%3D&csn=iqMS-g7TKZ3iXphv&endpoint=%7B%22clickTrackingParams%22%3A%22CKcBEJQ1GAAiEwiBn--LuvePAxW0aEIHHf_WJeQyBmctaGlnaFoYVUNPcE5jTjQ2VWJYVnRwS01ybVU0QWJnmgEGEPI4GJgCygEEMCo8vw%3D%3D%22%2C%22commandMetadata%22%3A%7B%22webCommandMetadata%22%3A%7B%22url%22%3A%22%2Fwatch%3Fv%3DkvqRbXcuI2U%22%2C%22webPageType%22%3A%22WEB_PAGE_TYPE_WATCH%22%2C%22rootVe%22%3A3832%7D%7D%2C%22watchEndpoint%22%3A%7B%22videoId%22%3A%22kvqRbXcuI2U%22%2C%22watchEndpointSupportedOnesieConfig%22%3A%7B%22html5PlaybackOnesieConfig%22%3A%7B%22commonConfig%22%3A%7B%22url%22%3A%22https%3A%2F%2Frr4---sn-vgqsrnlk.googlevideo.com%2Finitplayback%3Fsource%3Dyoutube%26oeis%3D1%26c%3DWEB%26oad%3D3200%26ovd%3D3200%26oaad%3D11000%26oavd%3D11000%26ocs%3D700%26oewis%3D1%26oputc%3D1%26ofpcc%3D1%26msp%3D1%26odepv%3D1%26id%3D92fa916d772e2365%26ip%3D97.119.190.205%26initcwndbps%3D2025000%26mt%3D1758924790%26oweuc%3D%22%7D%7D%7D%7D%7D
