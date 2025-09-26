@@ -3,6 +3,7 @@ psutil
 requests
 requests_html
 feedgen
+yt-dlp
 # pytube3
 # ssl
 # pytube
