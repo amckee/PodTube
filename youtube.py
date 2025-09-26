@@ -741,7 +741,11 @@ class VideoHandler(web.RequestHandler):
             self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates" )
         else:
             logging.error( "Unknown failure to get video. Falling back to yt-dlp method" )
-            yt_url = self.ytdlp_get_url( video )
+            try:
+                yt_url = self.ytdlp_get_url( video )
+            except Exception as e:
+                logging.error( 'YouTube: Error getting video URL: %s', e )
+
             if isinstance(yt_url, str):
                 logging.info("yt-dlp ftw!")
                 self.redirect( yt_url )
