@@ -747,7 +747,7 @@ class VideoHandler(web.RequestHandler):
                 logging.error( 'YouTube: Error getting video URL: %s', e )
 
             if isinstance(yt_url, str):
-                logging.info("yt-dlp ftw!")
+                logging.info("YouTube: yt-dlp ftw!")
                 self.redirect( yt_url )
             else:
                 logging.error( 'YouTube: Error returned by yt-dlp: %s', yt_url )

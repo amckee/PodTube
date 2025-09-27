@@ -12,7 +12,7 @@ RUN apt -y upgrade
 # RUN apt install -y nano less # tools useful for in-container debugging
 RUN pip install -r requirements.txt
 # RUN python -m pip install git+https://github.com/pytube/pytube
-RUN pip install git+https://github.com/felipeucelli/pytubefix.git@sig-nsig
+RUN pip install git+https://github.com/felipeucelli/pytubefix.git@ca8c67f 
 # RUN pip install git+https://github.com/JuanBindez/pytubefix.git
 # @dcc6196
 RUN mkdir -p  /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/
