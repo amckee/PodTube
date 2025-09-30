@@ -172,7 +172,7 @@ if __name__ == '__main__':
     try:
         app = make_app(conf)
         app.listen(args.port)
-        logging.info(f'Started listening on {args.port}')
+        logging.info(f'Podtube v{__version__} started. Listening on {args.port}')
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
         logging.info("Stopping server")
