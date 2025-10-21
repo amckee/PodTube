@@ -15,7 +15,7 @@ import bitchute
 import rumble
 import dailymotion
 
-# Handled automatically by git pre-commit hook
+# Bumped automatically by git pre-commit hook
 __version__ = '2025.10.01.1'
 
 class FileHandler(web.RequestHandler):
