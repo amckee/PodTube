@@ -2,11 +2,7 @@
 
 FROM python:3.10
 
-<<<<<<< HEAD
-LABEL net.ftawesome.home.version='2025.11.07.1'
-=======
-LABEL net.ftawesome.home.version='2025.11.07.1'
->>>>>>> 819d5c2 (Update Rumble parser)
+LABEL net.ftawesome.home.version='2025.11.07.2'
 
 WORKDIR /opt/
 

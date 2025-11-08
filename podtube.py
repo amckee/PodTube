@@ -15,13 +15,8 @@ import bitchute
 import rumble
 import dailymotion
 
-<<<<<<< HEAD
-# Bumped automatically by git pre-commit hook
-__version__ = '2025.11.07.1'
-=======
 # Handled automatically by git pre-commit hook
-__version__ = '2025.11.07.1'
->>>>>>> 819d5c2 (Update Rumble parser)
+__version__ = '2025.11.07.2'
 
 class FileHandler(web.RequestHandler):
     def get(self):
