@@ -439,7 +439,7 @@ def get_rumble_url( video, bitrate=None ):
     # Note: Expect this to break as Rumble makes more changes.
     regexSearch = None
     try:
-        regexSearch = re.search( r';[b|f|h|v|m|y]\.f\["%s"\]=.*:[a|d|f|u]\(\)\}' % embedVidID, el ).group().replace( r';y.f["%s"]=' % embedVidID, '').replace( r';m.f["%s"]=' % embedVidID, '').replace( r';b.f["%s"]=' % embedVidID, '' ).replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r';h.f["%s"]=' % embedVidID, '' ).replace( r';v.f["%s"]=' % embedVidID, '').replace( r',loaded:f()', '' ).replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' ).replace( r',loaded:u()', '')
+        regexSearch = re.search( r';[b|f|h|v|m|y]\.f\["%s"\]=.*:[a|d|f|h|u]\(\)\}' % embedVidID, el ).group().replace( r';y.f["%s"]=' % embedVidID, '').replace( r';m.f["%s"]=' % embedVidID, '').replace( r';b.f["%s"]=' % embedVidID, '' ).replace( r';f.f["%s"]=' % embedVidID, '' ).replace( r';h.f["%s"]=' % embedVidID, '' ).replace( r';v.f["%s"]=' % embedVidID, '').replace( r',loaded:f()', '' ).replace( r',loaded:d()', '' ).replace( r',loaded:a()', '' ).replace( r',loaded:u()', '').replace( r',loaded:h()', '')
     except Exception as e:
         logging.error( "Rumble: Failed to parse JSON data:\n%s", e )
 
