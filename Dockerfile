@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.10
+FROM python:3.12
 
 LABEL net.ftawesome.home.version='2025.11.07.4'
 
