@@ -2,7 +2,7 @@
 
 FROM python:3.12
 
-LABEL net.ftawesome.home.version='2025.11.07.4'
+LABEL net.ftawesome.home.version='2025.11.09.1'
 
 WORKDIR /opt/
 
@@ -14,6 +14,6 @@ RUN pip install -r requirements.txt
 # RUN pip install git+https://github.com/pytube/pytube
 # RUN pip install git+https://github.com/felipeucelli/pytubefix.git@sig-nsig
 RUN pip install git+https://github.com/JuanBindez/pytubefix.git@dev
-RUN mkdir -p  /usr/local/lib/python3.10/site-packages/pytubefix/__cache__/
+RUN mkdir -p  /usr/local/lib/python3.12/site-packages/pytubefix/__cache__/
 
 CMD ["python", "/opt/podtube.py"]
