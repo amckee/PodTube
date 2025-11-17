@@ -146,7 +146,7 @@ class UserHandler(web.RequestHandler):
     def get(self, user):
         logging.debug( "Got user: %s" % user )
 
-        url = "https://rumble.com/user/%s/videos" % user
+        url = "https://rumble.com/user/%s" % user
         logging.info( "Handling Rumble URL: %s" % url )
 
         self.set_header('Content-type', 'application/rss+xml')
@@ -155,7 +155,7 @@ class UserHandler(web.RequestHandler):
         self.finish()
 
     def get_html( self, user ):
-        url = "https://rumble.com/user/%s/videos" % user
+        url = "https://rumble.com/user/%s" % user
         logging.info("Rumble URL: %s" % url)
         r = requests.get( url, headers=headers )
         if r.status_code == 404:
