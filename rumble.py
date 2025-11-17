@@ -254,7 +254,6 @@ class UserHandler(web.RequestHandler):
                     item.podcast.itunes_duration( vidduration.text.strip() )
                 else:
                     logging.info("Failed to get video duration")
-                    item.podcast.itunes_duration( 'N/A' )
 
                 viddatetime = video.find("time", "videostream__time")
                 if viddatetime:
@@ -393,7 +392,6 @@ class CategoryHandler(web.RequestHandler):
                     item.podcast.itunes_duration( vidduration.text.strip() )
                 else:
                     logging.info("Failed to get video duration")
-                    item.podcast.itunes_duration( None )
 
         return feed.rss_str( pretty=True )
 
