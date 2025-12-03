@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+"""Main run file for PodTube."""
+
 from configparser import ConfigParser
 import glob
 import logging
@@ -16,9 +18,10 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-__version__ = '2025.11.17.2'
+__version__ = '2025.12.03.3'
 
 class FileHandler(web.RequestHandler):
+    """Handles requests for a specific file."""
     def get(self):
         """
         A method to handle GET requests and serve the README page with PodTube information.
@@ -29,7 +32,7 @@ class FileHandler(web.RequestHandler):
         self.write(')</title><link rel="shortcut icon" href="favicon.ico">')
         self.write('<link rel="stylesheet" type="text/css" href="markdown.css">')
         self.write('</head><body>')
-        with open('README.md') as text:
+        with open('README.md', encoding='utf-8') as text:
             self.write(
                 misaka.html(
                     text.read(),
@@ -37,6 +40,8 @@ class FileHandler(web.RequestHandler):
                 )
             )
         self.write('</body></html>')
+    def data_received(self, chunk):
+        pass
 
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
     """
@@ -55,7 +60,7 @@ def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str
 
 def make_app(config: ConfigParser):
     """
-    Initializes the web application with the given configuration and returns the initialized web application.
+    Initializes the web application with configuration and returns the initialized web application.
 
     Parameters:
     - config: ConfigParser - the configuration to initialize the web application.
