@@ -209,10 +209,10 @@ class UserHandler(web.RequestHandler):
         if videos:
             for video in videos:
                 ## Filter out live and upcoming videos
-                if video.find("span", "video-item--upcoming"):
+                if video.find("div", "thumbnail__thumb--upcoming"):
                     logging.info("Found upcoming video, skipping")
                     continue
-                if video.find("span", "video-item--live"):
+                if video.find("div", "thumbnail__thumb--live"):
                     logging.info("Found live video, skipping")
                     continue
 
@@ -221,7 +221,7 @@ class UserHandler(web.RequestHandler):
                 ## Gather channel information
                 vidtitle = video.find("h3", "thumbnail__title")
                 if vidtitle:
-                    item.title( vidtitle.text )
+                    item.title( vidtitle.text.strip() )
                 else:
                     logging.info("Failed to get video title")
                     item.title( 'N/A' )
@@ -483,8 +483,8 @@ def get_rumble_url( video, bitrate=None ):
                         else:
                             logging.info("Rumble: %s not found in video JSON" % res)
                 else:
-                    logging.error( "Rumble: Video JSON is empty" )
-                    logging.info( "Rumble: Will try to get audio track" )
+                    logging.error( "Rumble: Video JSON does not have an mp4 link:\n%s", vidInfo[0] )
+                    logging.info( "Rumble: Will try to get audio only" )
                     if vidInfo['u']['audio'] is not None:
                         vidurl = vidInfo['u']['audio']['url']
                         logging.info( "Rumble: Found audio track at %s", vidurl )
