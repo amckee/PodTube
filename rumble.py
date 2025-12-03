@@ -200,7 +200,7 @@ class UserHandler(web.RequestHandler):
         feed.description( "--" )
         feed.id( user )
         feed.link(
-            href = f'https://rumble.com/user/%s' % user,
+            href = f'https://rumble.com/user/{user}',
             rel = 'self'
         )
         feed.language('en')
@@ -463,6 +463,14 @@ def get_rumble_url( video, bitrate=None ):
                     elif '480' in vidInfo[thing]['mp4']:
                         logging.info('Rumble: Found 480p video')
                         vidurl = vidInfo[thing]['mp4']['480']['url']
+                if 'audio' in vidInfo[thing]:
+                    if 'url' in vidInfo[thing]['audio']:
+                        logging.info("Rumble: Found audio track")
+                        vidurl = vidInfo[thing]['audio']['url']
+                    else:
+                        if '192' in vidInfo[thing]['audio']:
+                            logging.info("Rumble: Found audio track")
+                            vidurl = vidInfo[thing]['audio']['192']['url']
 
     ## Fallback method, in case the above code failed to find anything
     if vidurl is None:
