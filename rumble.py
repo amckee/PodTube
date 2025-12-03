@@ -1,13 +1,19 @@
 #!/usr/bin/python3
-import logging, requests
-import datetime, pytz
+
+"""Module for handling Rumble channels."""
+
+import logging
+import datetime
+import requests
 import dateutil
 
 from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from tornado import web
 
-headers = { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.104 Safari/537.36' }
+headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.104 Safari/537.36'
+}
 
 class ChannelHandler(web.RequestHandler):
 
@@ -267,8 +273,8 @@ class UserHandler(web.RequestHandler):
                     url = link,
                     type = "video/mp4"
                 )
-            else:
-                logging.error("Failed to find video list")
+        else:
+            logging.error("Failed to find video list")
         return feed.rss_str( pretty=True )
 
 class CategoryHandler(web.RequestHandler):
