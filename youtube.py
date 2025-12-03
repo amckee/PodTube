@@ -3,7 +3,7 @@ This file contains the implementation of handlers and functions related to inter
 content. It includes classes such as VideoHandler, AudioHandler, ClearCacheHandler, and UserHandler,
 which handle different types of requests related to YouTube content.
 """
-from configparser import ConfigParser, NoSectionError, NoOptionError
+from configparser import ConfigParser
 
 import datetime
 import logging
@@ -15,12 +15,11 @@ from feedgen.feed import FeedGenerator
 import requests
 import psutil
 from pytubefix import YouTube, exceptions
-from pytubefix.exceptions import RegexMatchError
+# from pytubefix.exceptions import RegexMatchError
 #from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 import utils
-
 
 key = None
 cleanup_period = None
@@ -42,7 +41,8 @@ converting_lock = Semaphore(2)
 
 def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
     """
-    Get the value of a configuration option from the given ConfigParser object, either from the environment variables or from the configuration file.
+    Get the value of a configuration option from the given ConfigParser object, either
+    from the environment variables or from the configuration file.
 
     Args:
         conf (ConfigParser): The ConfigParser object containing the configuration options.
