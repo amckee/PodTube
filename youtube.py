@@ -732,6 +732,12 @@ class VideoHandler(web.RequestHandler):
         """
         logging.info( 'YouTube: Getting Video: %s', video )
 
+        # This can cause OOMs on lower spec'd servers.
+        # As such, run a garbage collection before
+        # running this function.
+        import gc
+        gc.collect()
+
         yt_url = get_youtube_url( video )
         if isinstance(yt_url, str):
             logging.debug( 'YouTube: Got video URL: %s', yt_url )
