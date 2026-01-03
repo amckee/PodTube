@@ -98,7 +98,7 @@ def get_video_url( video ):
     import re
     lnk = re.search( "https.*\.mp4", bs.find( "script" ).string )
     vidurl = lnk.group().split('"')[0].replace('\\', '')
-    logging.info( "Finally got the video URL: %s" % vidurl )
+    logging.info( "Video found: %s" % vidurl )
     return vidurl
 
 class VideoHandler(web.RequestHandler):

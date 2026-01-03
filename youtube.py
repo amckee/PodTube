@@ -763,24 +763,24 @@ class VideoHandler(web.RequestHandler):
             #     self.write( "Error returned by Youtube: " + str(yt_url) )
             #     self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
 
-    def ytdlp_get_url( self, videoid ):
-        # https://codepal.ai/code-generator/query/OOhjOSAi/retrieve-video-url-using-yt-dlp-python
-        import yt_dlp
-        URL = "https://www.youtube.com/watch?v=" + videoid
+    # def ytdlp_get_url( self, videoid ):
+    #     # https://codepal.ai/code-generator/query/OOhjOSAi/retrieve-video-url-using-yt-dlp-python
+    #     import yt_dlp
+    #     URL = "https://www.youtube.com/watch?v=" + videoid
 
-        opts = {
-            'format': 'best',
-            'quiet': True,
-            'noplaylist': True,
-            'cookies-from-browser': 'firefox',
-            'cookies': '/opt/cookies.txt',
-        }
+    #     opts = {
+    #         'format': 'best',
+    #         'quiet': True,
+    #         'noplaylist': True,
+    #         'cookies-from-browser': 'firefox',
+    #         'cookies': '/opt/cookies.txt',
+    #     }
 
-        with yt_dlp.YoutubeDL( opts ) as ydl:
-            info = ydl.extract_info( URL, download=False )
-            return info.get('url', None)
+    #     with yt_dlp.YoutubeDL( opts ) as ydl:
+    #         info = ydl.extract_info( URL, download=False )
+    #         return info.get('url', None)
 
-        return None
+    #     return None
 
 class AudioHandler(web.RequestHandler):
     def initialize(self):
