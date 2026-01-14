@@ -15,8 +15,6 @@ from feedgen.feed import FeedGenerator
 import requests
 import psutil
 from pytubefix import YouTube, exceptions
-# from pytubefix.exceptions import RegexMatchError
-#from pytube import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 import utils
@@ -39,7 +37,10 @@ __version__ = 'v2024.11.11.1'
 conversion_queue = {}
 converting_lock = Semaphore(2)
 
-def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+def get_env_or_config_option(conf: ConfigParser,
+                                 env_name: str,
+                                 config_name: str,
+                                 default_value = None):
     """
     Get the value of a configuration option from the given ConfigParser object, either
     from the environment variables or from the configuration file.
@@ -53,7 +54,9 @@ def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str
     Returns:
         The value of the configuration option, or the default value if the option is not found.
     """
-    return utils.get_env_or_config_option(conf, env_name, config_name, "youtube", default_value=default_value)
+    return utils.get_env_or_config_option(conf, env_name,
+                                          config_name, "youtube",
+                                          default_value=default_value)
 
 def init(conf: ConfigParser):
     """
@@ -184,7 +187,7 @@ def convert_videos():
     Asynchronous function to convert videos.
     This function checks the conversion queue for pending videos, selects the next video to convert,
     and then initiates the conversion process.
-    If an error occurs during the conversion, it handles the error and cleans up any temporary files.
+    If an error occurs during the conversion, it handles the error and cleans up any temp files.
     """
     global conversion_queue
     global converting_lock
@@ -263,12 +266,6 @@ def get_youtube_url(video):
         logging.error( 'YouTube: Error returned by Youtube: %s', e )
         return e
 
-    # # run a quick playability check
-    # if yt.vid_info['playabilityStatus']['status'] != 'OK':
-    #     logging.error( "Error returned by Youtube: %s - %s" % (yt.vid_info['playabilityStatus']['status'], yt.vid_info['playabilityStatus']['reason'] ) )
-    #     return yt.vid_info['playabilityStatus']['reason']
-
-    #, use_oauth=True, allow_oauth_cache=True) #Seems to fix the "KeyError: 'streamingData'" error - but why is this needed?
     try:
         logging.debug( 'YouTube: Stream count: %s', len(yt.streams) )
         try:
@@ -294,6 +291,13 @@ def get_youtube_url(video):
     return link['url']
 
 class ChannelHandler(web.RequestHandler):
+    """
+    Handles HTTP requests for YouTube channel pages and video listings.
+    
+    This request handler processes channel URLs, extracts video information,
+    and renders channel pages with video listings. It supports both video
+    and audio handler paths for different media formats.
+    """
     def initialize(self, video_handler_path: str, audio_handler_path: str):
         """
         Initializes the object with the given video and audio handler paths.
@@ -531,7 +535,18 @@ class ChannelHandler(web.RequestHandler):
                 'added': datetime.datetime.now()
             }
 
+    def data_received(self, chunk):
+        pass
+
 class PlaylistHandler(web.RequestHandler):
+    """
+    Handles HTTP requests for YouTube playlist processing.
+    
+    This request handler manages playlist downloads and conversions,
+    providing endpoints to process YouTube playlists and convert
+    their content to audio or video formats.
+    """
+    
     def initialize(self, video_handler_path: str, audio_handler_path: str):
         """
         Initialize the class with the provided video and audio handler paths.
@@ -542,6 +557,9 @@ class PlaylistHandler(web.RequestHandler):
         """
         self.video_handler_path = video_handler_path
         self.audio_handler_path = audio_handler_path
+
+    def data_received(self, chunk):
+        pass
 
     @gen.coroutine
     def head(self, playlist):
@@ -561,7 +579,7 @@ class PlaylistHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, playlist):
         """
-        A coroutine function to fetch a playlist and generate an RSS feed based on the playlist content.
+        A coroutine function to fetch a playlist and generate an RSS feed.
         """
         global key
         playlist = playlist.split('/')
@@ -719,6 +737,14 @@ class PlaylistHandler(web.RequestHandler):
             }
 
 class VideoHandler(web.RequestHandler):
+    """
+    Handles HTTP requests for YouTube video processing.
+    
+    This request handler manages video downloads and conversions,
+    providing endpoints to process YouTube videos and convert
+    their content to audio or video formats.
+    """
+
     def get(self, video):
         """
         Get the video URL from YouTube using the provided video ID,
@@ -782,7 +808,18 @@ class VideoHandler(web.RequestHandler):
 
     #     return None
 
+    def data_received(self, chunk):
+        pass
+
 class AudioHandler(web.RequestHandler):
+    """
+    Handles HTTP requests for YouTube audio processing.
+    
+    This request handler manages audio downloads and conversions,
+    providing endpoints to process YouTube videos and convert
+    their content to audio formats.
+    """
+
     def initialize(self):
         """
         Initialize the object.
@@ -936,7 +973,18 @@ class AudioHandler(web.RequestHandler):
         logging.warning( 'YouTube: User quit during transcoding (%s)', self.request.remote_ip )
         self.disconnected = True
 
+    def data_received(self, chunk):
+        pass
+
 class UserHandler(web.RequestHandler):
+    """
+    Handles HTTP requests for YouTube user processing.
+    
+    This request handler manages user channel downloads and conversions,
+    providing endpoints to process YouTube user channels and convert
+    their content to audio or video formats.
+    """
+
     def initialize(self, channel_handler_path: str):
         """
         Initialize the channel handler with the specified path.
@@ -1034,7 +1082,18 @@ class UserHandler(web.RequestHandler):
             self.redirect( selfurl, permanent = False )
         return None
 
+    def data_received(self, chunk):
+        pass
+
 class ClearCacheHandler(web.RequestHandler):
+    """
+    Handles HTTP requests for clearing various caches in the YouTube application.
+    
+    This request handler provides endpoints to clear different types of caches
+    including video files, video links, playlist feeds, channel feeds, and
+    channel name to ID mappings.
+    """
+
     ALL = "ALL"
     NONE = "NONE"
 
@@ -1056,64 +1115,64 @@ class ClearCacheHandler(web.RequestHandler):
         """
         global video_links, playlist_feed, channel_feed, channel_name_to_id
 
-        videoFile = self.get_argument(ClearCacheHandler.VIDEO_FILES, ClearCacheHandler.NONE, True)
-        videoLink = self.get_argument(ClearCacheHandler.VIDEO_LINKS, ClearCacheHandler.NONE, True)
-        playlistFeed = self.get_argument(ClearCacheHandler.PLAYLIST_FEED, ClearCacheHandler.NONE, True)
-        channelFeed = self.get_argument(ClearCacheHandler.CHANNEL_FEED, ClearCacheHandler.NONE, True)
-        channelNameToId = self.get_argument(ClearCacheHandler.CHANNEL_NAME_TO_ID, ClearCacheHandler.NONE, True)
+        video_file = self.get_argument(ClearCacheHandler.VIDEO_FILES, ClearCacheHandler.NONE, True)
+        video_link = self.get_argument(ClearCacheHandler.VIDEO_LINKS, ClearCacheHandler.NONE, True)
+        playlist_feed = self.get_argument(ClearCacheHandler.PLAYLIST_FEED, ClearCacheHandler.NONE, True)
+        channel_feed = self.get_argument(ClearCacheHandler.CHANNEL_FEED, ClearCacheHandler.NONE, True)
+        channel_name_to_id = self.get_argument(ClearCacheHandler.CHANNEL_NAME_TO_ID, ClearCacheHandler.NONE, True)
 
-        if any(element != ClearCacheHandler.NONE for element in [videoFile, videoLink, playlistFeed, channelFeed, channelNameToId]):
+        if any(element != ClearCacheHandler.NONE for element in [video_file, video_link, playlist_feed, channel_feed, channel_name_to_id]):
             logging.info( 'YouTube: Force clear cache started (%s)', self.request.remote_ip )
 
-        if (videoFile == ClearCacheHandler.ALL):
+        if video_file == ClearCacheHandler.ALL:
             for f in glob.glob('./audio/*mp3'):
                 try:
                     os.remove(f)
                     logging.info( 'YouTube: Deleted %s', f )
                 except Exception as e:
                     logging.error( 'YouTube: Error remove file %s: %s', f, e )
-        elif videoFile != ClearCacheHandler.NONE:
-            f = f"./audio/{videoFile}"
+        elif video_file != ClearCacheHandler.NONE:
+            f = f"./audio/{video_file}"
             try:
                 os.remove(f)
                 logging.info( 'YouTube: Deleted %s', f )
             except Exception as e:
                 logging.error( 'YouTube: Error remove file %s: %s', f, e )
 
-        if (videoLink == ClearCacheHandler.ALL):
+        if video_link == ClearCacheHandler.ALL:
             video_links_length = len(video_links)
             video_links = {}
             logging.info( 'YouTube: Cleaned %s items from video list', video_links_length )
-        elif videoLink != ClearCacheHandler.NONE:
-            if videoLink in video_links:
-                del video_links[videoLink]
+        elif video_link != ClearCacheHandler.NONE:
+            if video_link in video_links:
+                del video_links[video_link]
                 logging.info( 'YouTube: Cleaned 1 items from video list' )
 
-        if (playlistFeed == ClearCacheHandler.ALL):
+        if playlist_feed == ClearCacheHandler.ALL:
             playlist_feed_length = len(playlist_feed)
             playlist_feed = {}
             logging.info( 'YouTube: Cleaned %s items from playlist feeds', playlist_feed_length )
-        elif playlistFeed != ClearCacheHandler.NONE:
-            if playlistFeed in playlist_feed:
-                del playlist_feed[playlistFeed]
+        elif playlist_feed != ClearCacheHandler.NONE:
+            if playlist_feed in playlist_feed:
+                del playlist_feed[playlist_feed]
                 logging.info( 'YouTube: Cleaned 1 items from playlist feeds' )
 
-        if (channelFeed == ClearCacheHandler.ALL):
+        if channel_feed == ClearCacheHandler.ALL:
             channel_feed_length = len(channel_feed)
             channel_feed = {}
             logging.info( 'YouTube: Cleaned %s items from channel feeds', channel_feed_length )
-        elif channelFeed != ClearCacheHandler.NONE:
-            if channelFeed in channel_feed:
-                del channel_feed[channelFeed]
+        elif channel_feed != ClearCacheHandler.NONE:
+            if channel_feed in channel_feed:
+                del channel_feed[channel_feed]
                 logging.info( 'YouTube: Cleaned 1 items from chann  el feeds' )
 
-        if (channelNameToId == ClearCacheHandler.ALL):
+        if channel_name_to_id == ClearCacheHandler.ALL:
             channel_name_to_id_length = len(channel_name_to_id)
             channel_name_to_id = {}
             logging.info( 'YouTube: Cleaned %s items from channel name map', channel_name_to_id_length )
-        elif channelNameToId != ClearCacheHandler.NONE:
-            if channelNameToId in channel_name_to_id:
-                del channel_name_to_id[channelNameToId]
+        elif channel_name_to_id != ClearCacheHandler.NONE:
+            if channel_name_to_id in channel_name_to_id:
+                del channel_name_to_id[channel_name_to_id]
                 logging.info( 'YouTube: Cleaned 1 items from channel name map' )
 
         self.write(f'<html><head><title>PodTube (v{__version__}) cache</title>')
@@ -1184,3 +1243,6 @@ class ClearCacheHandler(web.RequestHandler):
         self.write("<br/>")
 
         self.write('</body></html>')
+
+    def data_received(self, chunk):
+        pass
