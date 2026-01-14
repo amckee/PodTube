@@ -9,6 +9,8 @@ from tornado import web
 
 __version__ = 'v2024.07.09.2'
 
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+
 class ChannelHandler(web.RequestHandler):
     """
     Set the response headers for the specified channel.
@@ -46,33 +48,6 @@ class ChannelHandler(web.RequestHandler):
         self.write( feed.rss_str(pretty=False) )
         self.finish()
 
-    def get_html( self, channel ):
-        """
-        Fetches the HTML content of the given Bitchute channel.
-
-        Args:
-            channel (str): The channel identifier.
-
-        Returns:
-            str: The HTML content of the channel's page.
-        """
-        url = f"{bitchuteurl}/channel/{channel}"
-        logging.info( "Requesting Bitchute URL: %s" % url )
-
-
-        logging.info( "Getting url: %s" % url )
-        scraper = cloudscraper.create_scraper(browser="chrome")
-
-        r = scraper.get( url )
-
-        if r.status_code == 403:
-            logging.error( "CloudFlare blocked: %s" % url)
-            self.set_status(403)
-        else:
-            logging.info( "Cloudscraper returned status code: %s" % r.status_code )
-            self.set_status(r.status_code)
-        return r.text
-
     def add_channel_info( self, feed, channel ):
         """
         Fetches the channel information from the Bitchute API.
@@ -96,7 +71,7 @@ class ChannelHandler(web.RequestHandler):
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-site',
-            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+            'user-agent': USER_AGENT,
         }
 
         json_data = {
@@ -151,7 +126,7 @@ class ChannelHandler(web.RequestHandler):
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-site',
-            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+            'user-agent': USER_AGENT,
         }
 
         json_data = {
@@ -160,7 +135,8 @@ class ChannelHandler(web.RequestHandler):
             'limit': 20,
         }
 
-        videos = requests.post("https://api.bitchute.com/api/beta/channel/videos", headers=headers, json=json_data, timeout=10)
+        videos = requests.post("https://api.bitchute.com/api/beta/channel/videos",
+                                headers=headers, json=json_data, timeout=10)
         if videos.status_code == 200:
             videos = videos.json()
 
@@ -180,7 +156,7 @@ class ChannelHandler(web.RequestHandler):
                     type = 'video/mp4'
                 )
         else:
-            logging.error( "Bitchute returned status code: %s" % videos.status_code )
+            logging.error( "Bitchute returned status code: %s", videos.status_code )
             self.set_status(videos.status_code)
 
         return feed
@@ -195,7 +171,7 @@ class ChannelHandler(web.RequestHandler):
         Returns:
             str: The RSS feed in string format.
         """
-        logging.info( "Bitchute URL: %s" % channel )
+        logging.info( "Bitchute URL: %s", channel )
 
         feed = FeedGenerator()
         feed.load_extension('podcast')
@@ -205,7 +181,17 @@ class ChannelHandler(web.RequestHandler):
 
         return feed
 
+    def data_received(self, chunk):
+        pass
+
 class VideoHandler(web.RequestHandler):
+    """
+    Handles video-related requests for the Bitchute integration.
+    
+    This class provides functionality to retrieve video URLs and serve
+    video content from Bitchute platform.
+    """
+
     def get_video_url(self, video_id):
         """
         Retrieve the Bitchute video URL for a given video ID.
@@ -230,7 +216,7 @@ class VideoHandler(web.RequestHandler):
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-site',
-            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+            'user-agent': USER_AGENT,
         }
 
         # Define the JSON data for the API request.
@@ -241,7 +227,8 @@ class VideoHandler(web.RequestHandler):
         }
 
         # Send a POST request to the Bitchute API to fetch the video details.
-        response = requests.post("https://api.bitchute.com/api/beta9/video", headers=headers, json=json_data, timeout=10)
+        response = requests.post("https://api.bitchute.com/api/beta9/video",
+                                headers=headers, json=json_data, timeout=10)
         video = response.json()
 
         # Extract the channel ID and video ID from the API response.
@@ -252,6 +239,7 @@ class VideoHandler(web.RequestHandler):
         video_url = f"https://seedxvj21.bitchute.com/{channel_id}/{video_id}.mp4"
 
         return video_url
+
     def get(self, video):
         """
         Get the Bitchute video and redirect to the Bitchute URL.
@@ -263,5 +251,8 @@ class VideoHandler(web.RequestHandler):
             None
         """
         video = video.rstrip("/")
-        logging.info("Bitchute Video: %s" % video)
+        logging.info("Bitchute Video: %s", video)
         self.redirect( self.get_video_url(video) )
+
+    def data_received(self, chunk):
+        pass

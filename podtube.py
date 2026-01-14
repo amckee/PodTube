@@ -18,7 +18,7 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-__version__ = '2025.12.28.1'
+__version__ = '2026.01.03.1'
 
 class FileHandler(web.RequestHandler):
     """Handles requests for a specific file."""
@@ -43,20 +43,28 @@ class FileHandler(web.RequestHandler):
     def data_received(self, chunk):
         pass
 
-def get_env_or_config_option(conf: ConfigParser, env_name: str, config_name: str, default_value = None):
+def get_env_or_config_option(conf: ConfigParser,
+                                env_name: str,
+                                config_name: str,
+                                default_value = None):
     """
-    Get the value of a configuration option from the given ConfigParser object or from the environment variable.
+    Get the config value from the given ConfigParser object or from the env var.
 
     Args:
         conf (ConfigParser): The ConfigParser object containing the configuration options.
         env_name (str): The name of the environment variable to check for the option value.
         config_name (str): The name of the configuration option to retrieve.
-        default_value: The default value to return if the option is not found in the configuration or environment.
+        default_value: The default value to return if option not found in the conf or env.
 
     Returns:
-        The value of the configuration option from the ConfigParser object or environment variable, or the default value if not found.
+        The value of the configuration option from the ConfigParser object
+        or environment variable, or the default value if not found.
     """
-    return utils.get_env_or_config_option(conf, env_name, config_name, "general", default_value=default_value)
+    return utils.get_env_or_config_option(conf,
+                                            env_name,
+                                            config_name,
+                                            "general",
+                                            default_value=default_value)
 
 def make_app(config: ConfigParser):
     """
@@ -80,7 +88,7 @@ def make_app(config: ConfigParser):
         }),
         (r'/youtube/video/(.*)', youtube.VideoHandler),
         (r'/youtube/audio/(.*)', youtube.AudioHandler),
-        (r'/youtube/user/@(.*)', youtube.UserHandler, {'channel_handler_path': '/youtube/channel/'}),
+        (r'/youtube/user/@(.*)', youtube.UserHandler, {'channel_handler_path':'/youtube/channel/'}),
         (r'/youtube/cache/', youtube.ClearCacheHandler),
         (r'/rumble/user/(.*)', rumble.UserHandler),
         (r'/rumble/channel/(.*)', rumble.ChannelHandler),
@@ -104,7 +112,7 @@ if __name__ == '__main__':
         os.mkdir('audio')
     defaults = {}
     parser = ArgumentParser(
-        description="This is a python application for converting Youtube, Rumble and Bitchute channels into RSS feeds."
+        description="A python app for converting Youtube, Rumble, Bitchute and DailyMotion channels into RSS feeds usable by PodCast apps."
     )
     parser.add_argument(
         '--config-file',
@@ -177,7 +185,7 @@ if __name__ == '__main__':
     try:
         app = make_app(conf)
         app.listen(args.port)
-        logging.info(f'Podtube v{__version__} started. Listening on {args.port}')
+        logging.info("Podtube v%s started. Listening on %s" % (__version__, args.port))
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
         logging.info("Stopping server")
