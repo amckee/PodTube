@@ -18,6 +18,7 @@ from pytubefix import YouTube, exceptions
 from tornado import gen, httputil, ioloop, iostream, process, web
 from tornado.locks import Semaphore
 import utils
+import gc
 
 key = None
 cleanup_period = None
@@ -287,6 +288,9 @@ def get_youtube_url(video):
         'expire': datetime.datetime.fromtimestamp(int(parts['expire']))
     }
 
+    yt = None
+    del yt
+
     video_links[video] = link
     return link['url']
 
@@ -546,7 +550,7 @@ class PlaylistHandler(web.RequestHandler):
     providing endpoints to process YouTube playlists and convert
     their content to audio or video formats.
     """
-    
+
     def initialize(self, video_handler_path: str, audio_handler_path: str):
         """
         Initialize the class with the provided video and audio handler paths.
@@ -761,7 +765,6 @@ class VideoHandler(web.RequestHandler):
         # This can cause OOMs on lower spec'd servers.
         # As such, run a garbage collection before
         # running this function.
-        import gc
         gc.collect()
 
         yt_url = get_youtube_url( video )
@@ -769,12 +772,12 @@ class VideoHandler(web.RequestHandler):
             logging.debug( 'YouTube: Got video URL: %s', yt_url )
             self.redirect( yt_url )
         elif yt_url is None:
-            self.write( f"Video not found: {video}" )
-            self.write( "Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates" )
+            error_msg = f"Video not found: {video}<br/>Check with <a href=https://github.com/JuanBindez/pytubefix/issues>PytubeFix project</a> for possible fixes or updates"
+            self.write(error_msg)
         else:
             logging.error( "Unknown failure to get video." )
-            self.write( "Error returned by Youtube: " + str(yt_url) )
-            self.write( f"<br/>https://www.youtube.com/watch?v={video}" ) #this helps with debugging
+            error_msg = f"Error returned by Youtube: {yt_url}<br/>https://www.youtube.com/watch?v={video}"
+            self.write(error_msg)
             # logging.error( "Unknown failure to get video. Falling back to yt-dlp method" )
             # try:
             #     yt_url = self.ytdlp_get_url( video )
