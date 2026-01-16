@@ -338,9 +338,9 @@ class ChannelHandler(web.RequestHandler):
             - None
         """
         global key
-        maxPages = self.get_argument('max', None)
-        if maxPages:
-            logging.info( 'YouTube: Will grab videos from a maximum of %s pages', maxPages )
+        max_pages = self.get_argument('max', None)
+        if max_pages:
+            logging.info( 'YouTube: Will grab videos from a maximum of %s pages', max_pages )
 
         channel = channel.split('/')
         if len(channel) < 2:
@@ -442,10 +442,10 @@ class ChannelHandler(web.RequestHandler):
         fg.updated(str(datetime.datetime.utcnow()) + 'Z')
 
         response = {'nextPageToken': ''}
-        pageCount = itemCount = 0
+        page_count = item_count = 0
         while 'nextPageToken' in response.keys():
-            pageCount += 1
-            if maxPages and (pageCount > int(maxPages)):
+            page_count += 1
+            if max_pages and (page_count > int(max_pages)):
                 logging.info( 'YouTube: Reached maximum number of pages. Stopping here.' )
                 break
             next_page = response['nextPageToken']
@@ -487,7 +487,7 @@ class ChannelHandler(web.RequestHandler):
                     snippet['title']
                 )
                 fe = fg.add_entry()
-                itemCount += 1
+                item_count += 1
                 fe.title(snippet['title'])
                 fe.id(current_video)
                 icon = max(
@@ -514,7 +514,7 @@ class ChannelHandler(web.RequestHandler):
                 )
                 fe.podcast.itunes_summary(snippet['description'])
                 fe.description(snippet['description'])
-                if not video or video['expire'] < fe.pubDate():
+                if video is None or video['expire'] < fe.pubDate():
                     video = {'video': fe.id(), 'expire': fe.pubDate()}
         feed = {
             'feed': fg.rss_str(),
@@ -523,7 +523,7 @@ class ChannelHandler(web.RequestHandler):
         for chan in channel_name:
             channel_feed[chan] = feed
 
-        logging.info( "Got %s videos from %s pages" % (itemCount, pageCount) )
+        logging.info( "Got %s videos from %s pages", item_count, page_count )
 
         self.write(feed['feed'])
         self.finish()
@@ -531,10 +531,10 @@ class ChannelHandler(web.RequestHandler):
         global autoload_newest_audio
         if not autoload_newest_audio:
             return
-        video = video['video']
-        mp3_file = 'audio/{}.mp3'.format(video)
-        if channel[1] == 'audio' and not os.path.exists(mp3_file) and video not in conversion_queue.keys():
-            conversion_queue[video] = {
+        video_name = video['video']
+        mp3_file = f'audio/{video_name}.mp3'
+        if channel[1] == 'audio' and not os.path.exists(mp3_file) and video_name not in conversion_queue.keys():
+            conversion_queue[video_name] = {
                 'status': False,
                 'added': datetime.datetime.now()
             }
