@@ -19,9 +19,9 @@ import dailymotion
 
 # Handled automatically by git pre-commit hook
 <<<<<<< HEAD
-__version__ = '2026.01.31.1'
+__version__ = '2026.02.26.1'
 =======
-__version__ = '2025.12.03.6'
+__version__ = '2026.02.26.1'
 >>>>>>> 2a649b0 (Move back to alternative repo and branch for testing.)
 
 class FileHandler(web.RequestHandler):
