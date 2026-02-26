@@ -18,11 +18,7 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-<<<<<<< HEAD
 __version__ = '2026.02.26.1'
-=======
-__version__ = '2026.02.26.1'
->>>>>>> 2a649b0 (Move back to alternative repo and branch for testing.)
 
 class FileHandler(web.RequestHandler):
     """Handles requests for a specific file."""
@@ -52,12 +48,7 @@ def get_env_or_config_option(conf: ConfigParser,
                                 config_name: str,
                                 default_value = None):
     """
-<<<<<<< HEAD
     Get the config value from the given ConfigParser object or from the env var.
-=======
-    Get the value of a configuration option from the given ConfigParser object,
-    or pull from the environment variables if nothing is found.
->>>>>>> 2a649b0 (Move back to alternative repo and branch for testing.)
 
     Args:
         conf (ConfigParser): The ConfigParser object containing the configuration options.
