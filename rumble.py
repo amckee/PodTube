@@ -521,7 +521,7 @@ def get_rumble_url( video, bitrate=None ):
 
 class VideoHandler(web.RequestHandler):
     def get(self, video):
-        logging.debug("Rumble: Rumble Video: %s", video)
+        logging.debug("Rumble: Video: %s", video)
         bitrate = None
         if bitrate is not None:
             logging.info("Rumble: Requesting bitrate: %s", bitrate)
