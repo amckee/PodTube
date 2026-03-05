@@ -6,7 +6,7 @@ import json
 from feedgen.feed import FeedGenerator
 from tornado import web
 
-__version__ = 'v2022.03.23.2'
+__version__ = 'v2026.03.05.2'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
@@ -96,7 +96,7 @@ def get_video_url( video ):
     bs = BeautifulSoup( r.text, 'lxml' )
     el = bs.find("script").string
     import re
-    lnk = re.search( "https.*\.mp4", bs.find( "script" ).string )
+    lnk = re.search( "https.*.mp4", bs.find( "script" ).string )
     vidurl = lnk.group().split('"')[0].replace('\\', '')
     logging.info( "Video found: %s" % vidurl )
     return vidurl
