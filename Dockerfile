@@ -2,7 +2,7 @@
 
 FROM python:3.12
 
-LABEL net.ftawesome.home.version='2026.03.10.2'
+LABEL net.ftawesome.home.version='2026.03.10.3'
 
 WORKDIR /opt/
 
@@ -13,7 +13,7 @@ RUN apt -y upgrade
 RUN pip install -r requirements.txt
 
 # RUN pip install git+https://github.com/sdrapha/pytubefix.git@patch1
-RUN pip install git+https://github.com/JuanBindez/pytubefix.git@597a4f0a523dac976052a0e76377a87a39973643
+RUN pip install git+https://github.com/JuanBindez/pytubefix.git@61eddb9768557e8daaa1ecd7174c6e31d85bb710
 # RUN pip install git+https://github.com/JuanBindez/pytubefix.git@dev
 # RUN pip install git+https://github.com/felipeucelli/pytubefix.git@sig-nsig
 # RUN pip install git+https://github.com/pytube/pytube
