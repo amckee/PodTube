@@ -2,7 +2,7 @@
 
 FROM python:3.12
 
-LABEL net.ftawesome.home.version='2026.03.10.1'
+LABEL net.ftawesome.home.version='2026.03.10.2'
 
 WORKDIR /opt/
 
@@ -12,8 +12,8 @@ RUN apt -y upgrade
 # RUN apt install -y nano less # tools useful for in-container debugging
 RUN pip install -r requirements.txt
 
-RUN pip install git+https://github.com/sdrapha/pytubefix.git@patch1
-# RUN pip install git+https://github.com/JuanBindez/pytubefix.git
+# RUN pip install git+https://github.com/sdrapha/pytubefix.git@patch1
+RUN pip install git+https://github.com/JuanBindez/pytubefix.git@597a4f0a523dac976052a0e76377a87a39973643
 # RUN pip install git+https://github.com/JuanBindez/pytubefix.git@dev
 # RUN pip install git+https://github.com/felipeucelli/pytubefix.git@sig-nsig
 # RUN pip install git+https://github.com/pytube/pytube
