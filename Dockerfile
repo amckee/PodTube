@@ -13,7 +13,7 @@ RUN apt -y upgrade
 RUN pip install -r requirements.txt
 
 # Run this patched commit until it's merged.
-RUN pip install git+https://github.com/JuanBindez/pytubefix.git@a606841af92174caaa7ec94f3838561bbfde917d
+RUN pip install git+https://github.com/JuanBindez/pytubefix.git@c94fceffee55a104cdafe38ab82b40d6b5a007b6
 
 # Alternate repos for various fixes.
 # RUN pip install git+https://github.com/JuanBindez/pytubefix.git@dev
