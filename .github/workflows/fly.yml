@@ -1,16 +1,16 @@
-name: Fly Deploy
+name: Deploy to fly.io
 on:
-  workflow_dispatch:
   push:
     branches: [ master ]
-  # workflow_run:
-  #   workflows: ["Build amd64"]
-  #   types:
-  #     - completed
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build amd64", "push_to_Docker_Hub"]
+    types:
+      - completed
 
 jobs:
-  deploy:
-    name: Deploy app to fly
+  deploy_to_fly:
+    name: Deploy app to fly.io
     needs: [push_to_Docker_Hub_amd64]
     runs-on: ubuntu-latest
     steps:
