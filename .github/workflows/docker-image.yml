@@ -41,7 +41,7 @@ jobs:
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@main
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Login to DockerHub
@@ -68,7 +68,7 @@ jobs:
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@main
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Login to DockerHub
