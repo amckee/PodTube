@@ -1,7 +1,7 @@
 name: Fly Deploy
 on:
   workflow_run:
-    workflows: ["Build and deploy to dockerhub"]
+    workflows: ["Build amd64"]
     types:
       - completed
 
@@ -11,7 +11,7 @@ jobs:
     needs: [push_to_Docker_Hub_amd64]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@main
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only -a podtube
         env:
