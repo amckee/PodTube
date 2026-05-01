@@ -4,14 +4,14 @@ on:
     branches: [ master ]
   workflow_dispatch:
   workflow_run:
-    workflows: ["Build amd64", "push_to_Docker_Hub"]
+    workflows: ["Build amd64", "push_to_Docker_Hub_amd64"]
     types:
       - completed
 
 jobs:
   deploy_to_fly:
     name: Deploy app to fly.io
-    needs: [push_to_Docker_Hub_amd64]
+    # needs: [push_to_Docker_Hub_amd64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
