@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
       - name: get version
         run: |
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
       - name: get version
         run: |
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
       - name: get version
         run: |
           VERSION=$(grep -E ^__version__ podtube.py | cut -d\' -f2)
@@ -109,7 +109,7 @@ jobs:
   #   needs: [push_to_Docker_Hub_amd64]
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@main
+  #     - uses: actions/checkout@v3
   #     - uses: superfly/flyctl-actions/setup-flyctl@master
   #     - run: flyctl deploy --remote-only -a podtube
   #       env:
