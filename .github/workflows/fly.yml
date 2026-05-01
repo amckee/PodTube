@@ -1,13 +1,14 @@
 name: Fly Deploy
 on:
-  push:
-    branches:
-      - auto_deploy_disabled
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build and deploy to dockerhub"]
+    types:
+      - completed
 
 jobs:
   deploy:
-    name: Deploy app
+    name: Deploy app to fly
+    needs: [push_to_Docker_Hub_amd64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
