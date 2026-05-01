@@ -106,6 +106,7 @@ jobs:
         run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
 
   deploy_app:
+    name: Deploy app to fly.io
     needs: [push_to_Docker_Hub_amd64]
     runs-on: ubuntu-latest
     steps:
