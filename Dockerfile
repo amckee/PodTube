@@ -11,7 +11,7 @@ RUN apt update
 RUN apt -y upgrade
 RUN pip install -r requirements.txt
 
-RUN pip install git+https://github.com/JuanBindez/pytubefix.git
+# RUN pip install git+https://github.com/JuanBindez/pytubefix.git
 
 RUN mkdir -p  /usr/local/lib/python3.12/site-packages/pytubefix/__cache__/
 

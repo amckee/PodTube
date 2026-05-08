@@ -8,7 +8,8 @@ yt-dlp
 # ssl
 # pytube
 # pytubefix
-git+https://github.com/felipeucelli/pytubefix.git
+# git+https://github.com/felipeucelli/pytubefix.git
 tornado
 pytz
 cloudscraper
+git+https://github.com/JuanBindez/pytubefix.git
