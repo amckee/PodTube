@@ -18,7 +18,7 @@ import rumble
 import dailymotion
 
 # Handled automatically by git pre-commit hook
-__version__ = '2026.05.07.1'
+__version__ = '2026.05.12.1'
 
 class FileHandler(web.RequestHandler):
     """Handles requests for a specific file."""
@@ -101,6 +101,7 @@ def make_app(config: ConfigParser):
         (r'/config.ini', web.RedirectHandler, {'url': '/'}),
         (r'/README.md', web.RedirectHandler, {'url': '/'}),
         (r'/Dockerfile', web.RedirectHandler, {'url': '/'}),
+        (r'/(.*).php', web.RedirectHandler, {'url': 'https://google.com/'}), #Redirect scanners looking for php files.
         (r'/', FileHandler),
         (r'/(.*)', web.StaticFileHandler, {'path': '.'})
     ], compress_response=True)
