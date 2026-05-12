@@ -520,13 +520,13 @@ def get_rumble_url( video, bitrate=None ):
                                 logging.error("Rumble: Failed to find anything for %s", vid)
             except Exception as e:
                 logging.error( "Rumble: Failed to get video or audio: %s - %s", video, e )
-                # logging.info("Rumble: Attempting to pass back an .m3u8 file")
-                # try:
-                #     if 'u' in vid_info and 'hls' in vid_info['u'] and 'url' in vid_info['u']['hls']:
-                #         vidurl = vid_info['u']['hls']['url']
-                #         logging.info("Rumble: Found .m3u8 file at %s", vidurl)
-                # except Exception as ex:
-                #     logging.error( "Rumble: Failed to get .m3u8 file: %s", ex )
+                logging.info("Rumble: Attempting to pass back an .m3u8 file")
+                try:
+                    if 'u' in vid_info and 'hls' in vid_info['u'] and 'url' in vid_info['u']['hls']:
+                        vidurl = vid_info['u']['hls']['url']
+                        logging.info("Rumble: Found .m3u8 file at %s", vidurl)
+                except Exception as ex:
+                    logging.error( "Rumble: Failed to get .m3u8 file: %s", ex )
     return vidurl
 
 class VideoHandler(web.RequestHandler):
