@@ -78,7 +78,7 @@ class ChannelHandler(web.RequestHandler):
         if videos:
             videos = videos.find_all("div", "videostream")
         else:
-            logging.info("Failed to find video list")
+            logging.error("Rumble: Failed to find video list")
 
         if videos:
             for video in videos:
@@ -140,7 +140,7 @@ class ChannelHandler(web.RequestHandler):
 
                 item.enclosure(
                     url = link,
-                    type = "video/mp4"
+                    type = ""
                 )
         return feed.rss_str( pretty=True )
 
