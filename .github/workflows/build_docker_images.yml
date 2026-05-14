@@ -89,7 +89,7 @@ jobs:
   #         platforms: linux/arm/v7
   merge_tags:
     name: Merge tags
-    #needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_arm_v7, push_to_Docker_Hub_amd64]
+    # needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_arm_v7, push_to_Docker_Hub_amd64]
     needs: [push_to_Docker_Hub_arm64, push_to_Docker_Hub_amd64]
     runs-on: ubuntu-latest
     steps:
@@ -105,9 +105,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: merge into latest
-        run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
+        run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
+        # run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:latest-amd64
       - name: merge into version
-        run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
+        run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
+        # run: docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-armv7 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-arm64 ${{ secrets.DOCKERHUB_USERNAME }}/podtube:${{ env.VERSION }}-amd64
 
   deploy_app:
     name: Deploy app to fly.io
