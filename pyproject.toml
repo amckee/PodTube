@@ -5,10 +5,12 @@ description = "Create podcast episodes from YouTube videos"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "appwrite>=22.0.0",
     "cloudscraper>=1.2.71",
     "feedgen>=1.0.0",
     "misaka>=2.1.1",
     "psutil>=7.2.2",
+    "pyee==13.0.1",
     "pytubefix>=10.6.1",
     "pytz>=2026.2",
     "requests>=2.34.2",

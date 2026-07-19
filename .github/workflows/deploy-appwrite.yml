@@ -1,0 +1,44 @@
+name: Deploy Appwrite Function
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '!src/tests/**'
+      - 'appwrite.config.json'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/deploy-appwrite.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Deploy
+        run: |
+          uv export --format requirements-txt --no-dev --output-file src/requirements.txt
+          npm install -g appwrite-cli
+          appwrite client --endpoint ${{ secrets.APPWRITE_ENDPOINT }} --project-id ${{ secrets.APPWRITE_PROJECT_ID }} --key ${{ secrets.APPWRITE_API_KEY }}
+          
+          echo "Pushing function code and configuration..."
+          appwrite push functions --all --force --activate
+          
+          echo "Explicitly setting execution permissions to 'any'..."
+          appwrite functions update --function-id podtube --name podtube --execute any
+          
+          echo "Verification: Fetching function details..."
+          appwrite functions get --function-id podtube

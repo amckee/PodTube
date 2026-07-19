@@ -1,0 +1,33 @@
+{
+    "projectId": "67f9821f00043c315ac9",
+    "projectName": "podtube",
+    "endpoint": "https://fra.cloud.appwrite.io/v1",
+    "functions": [
+        {
+            "$id": "podtube",
+            "name": "podtube",
+            "runtime": "python-3.14",
+            "buildSpecification": "s-2vcpu-2gb",
+            "runtimeSpecification": "s-0.5vcpu-512mb",
+            "execute": [
+                "any"
+            ],
+            "events": [],
+            "scopes": [
+                "users.read"
+            ],
+            "schedule": "",
+            "timeout": 15,
+            "enabled": true,
+            "logging": true,
+            "entrypoint": "main.py",
+            "commands": "pip install -r requirements.txt",
+            "ignore": [
+                "__pypackages__",
+                "tests"
+            ],
+            "deploymentRetention": 0,
+            "path": "src"
+        }
+    ]
+}
