@@ -145,8 +145,7 @@ ENV/
 audio/
 
 .history
-.vscode
 
 .venv
 
-*.lock
+.appwrite
