@@ -101,12 +101,13 @@ class ChannelHandler(web.RequestHandler):
                     continue
 
                 #Find the 480p or 360p (as a backup) version for smaller files. Good enough resolution for phones.
+                url = None
                 for v in video['videos']:
                     if v['res'] == 480 or v['res'] == 360:
                         url = v['url']
                         break
 
-                if not url:
+                if url is None:
                     logging.error("Rumble: Failed to find video URL")
                     continue
 
