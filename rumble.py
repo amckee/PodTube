@@ -6,6 +6,7 @@ import logging
 import datetime
 import requests
 import dateutil
+import json
 
 from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
@@ -74,72 +75,59 @@ class ChannelHandler(web.RequestHandler):
         feed.language('en')
 
         ## Assemble RSS items list
-        videos = bs.find("ol", "thumbnail__grid")
-        if videos:
-            videos = videos.find_all("div", "videostream")
-        else:
+        vids = bs.find("rum-videos-grid").find("script").text
+        videos = json.loads(vids)
+        if not videos:
             logging.error("Rumble: Failed to find video list")
-
-        if videos:
-            for video in videos:
-                ## Check for and skip live videos and upcomming videos
-                if video.find("span", "video-item--live") \
-                    or video.find("span", "video-item--upcoming") \
-                    or video.find("div", "videostream__status--live") \
-                    or video.find("div", "videostream__footer--live"):
-                    vidTitle = video.find("h3", "thumbnail__title")
-                    logging.info("Rumble: Skipping live/upcoming video: %s", vidTitle.text.strip())
+        else:
+            for video in videos['items']:
+                # Sanity check
+                if not video:
+                    logging.error("Rumble: Failed to find video")
                     continue
 
-                ## Check for and skip premium videos
-                el = video.find("span", "text-link-green")
-                if el and el.text == "Premium only":
-                    vidTitle = video.find("h3", "thumbnail__title")
-                    logging.info("Rumble: Skipping premium video: %s", vidTitle.text.strip())
+                ## Check for and skip live videos and upcomming videos
+                if video['live']:
+                    logging.info("Rumble: Skipping live/upcoming video: %s", video['title'])
+                    continue
 
-                ## Gather channel information
                 item = feed.add_entry()
 
                 ## Gather video information
-                vidtitle = video.find("h3", "thumbnail__title")
-                if vidtitle:
-                    item.title( vidtitle.text.strip() )
+                if 'title' in video:
+                    item.title( video['title'] )
                 else:
-                    logging.info("Rumble: Failed to pull video thumbnail.")
+                    logging.error("Rumble: Failed to pull video title")
+                    continue
 
-                viddesc = video.find("div", "videostream__description")
-                if viddesc:
-                    item.description( viddesc.text.strip() )
-                # else:
-                #     logging.info("Failed to pull video description.")
+                #Find the 480p or 360p (as a backup) version for smaller files. Good enough resolution for phones.
+                for v in video['videos']:
+                    if v['res'] == 480 or v['res'] == 360:
+                        url = v['url']
+                        break
 
-                vid = video.find("a", "videostream__link")
-                if vid:
-                    vid = vid['href']
-                else:
-                    logging.info("Rumble: Failed to pull URL to video.")
+                if not url:
+                    logging.error("Rumble: Failed to find video URL")
+                    continue
 
-                link = f'http://{self.request.host}/rumble/video' + vid
                 item.link(
-                    href = link,
+                    href = url,
                     title = item.title()
                 )
 
-                vidduration = video.find('div', 'videostream__status--duration')
-                if vidduration:
-                    item.podcast.itunes_duration( vidduration.text.strip() )
+                if 'duration' in video:
+                    item.podcast.itunes_duration( video['duration'] )
                 else:
                     logging.info("Rumble: Failed to pull video duration.")
 
-                viddatetime = video.find("time", "videostream__time")
-                if viddatetime:
-                    date = dateutil.parser.parse( viddatetime['datetime'] )
+                if 'upload_date' in video:
+                    date = dateutil.parser.parse( video['upload_date'] )
                     item.pubDate( date )
                 else:
                     logging.info("Rumble: Failed to pull video date.")
 
                 item.enclosure(
-                    url = link,
+                    url = url,
                     type = ""
                 )
         return feed.rss_str( pretty=True )
