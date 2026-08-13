@@ -11,3 +11,4 @@ podtube.log
 cipher.new.py
 Pipfile
 notes
+*.code-workspace
