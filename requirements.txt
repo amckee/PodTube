@@ -7,7 +7,7 @@ yt-dlp
 # pytube3
 # ssl
 # pytube
-# pytubefix
+pytubefix
 tornado
 pytz
 cloudscraper
