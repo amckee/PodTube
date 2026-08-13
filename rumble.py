@@ -75,62 +75,74 @@ class ChannelHandler(web.RequestHandler):
         feed.language('en')
 
         ## Assemble RSS items list
-        vids = bs.find("rum-videos-grid").find("script").text
-        videos = json.loads(vids)
-        if not videos:
+        video_grid = bs.find("rum-videos-grid")
+        if video_grid is None:
+            logging.error("Rumble: Channel videos not found")
+            return None
+
+        video_json = video_grid.find("script").text
+
+        if video_json is None:
+            logging.error("Rumble: Channel video data not found")
+            return None
+
+        videos_data = json.loads( video_json )
+
+        if not videos_data:
             logging.error("Rumble: Failed to find video list")
-        else:
-            for video in videos['items']:
-                # Sanity check
-                if not video:
-                    logging.error("Rumble: Failed to find video")
-                    continue
+            return None
 
-                ## Check for and skip live videos and upcomming videos
-                if video['live']:
-                    logging.info("Rumble: Skipping live/upcoming video: %s", video['title'])
-                    continue
+        for video in videos_data['items']:
+            # Sanity check
+            if not video:
+                logging.error("Rumble: Failed to find video")
+                continue
 
-                item = feed.add_entry()
+            ## Check for and skip live videos and upcomming videos
+            if video['live']:
+                logging.info("Rumble: Skipping live/upcoming video: %s", video['title'])
+                continue
 
-                ## Gather video information
-                if 'title' in video:
-                    item.title( video['title'] )
-                else:
-                    logging.error("Rumble: Failed to pull video title")
-                    continue
+            item = feed.add_entry()
 
-                #Find the 480p or 360p (as a backup) version for smaller files. Good enough resolution for phones.
-                url = None
-                for v in video['videos']:
-                    if v['res'] == 480 or v['res'] == 360:
-                        url = v['url']
-                        break
+            ## Gather video information
+            if 'title' in video:
+                item.title( video['title'] )
+            else:
+                logging.error("Rumble: Failed to pull video title")
+                continue
 
-                if url is None:
-                    logging.error("Rumble: Failed to find video URL")
-                    continue
+            #Find the 480p or 360p (as a backup) version for smaller files. Good enough resolution for phones.
+            url = None
+            for v in video['videos']:
+                if v['res'] == 480 or v['res'] == 360:
+                    url = v['url']
+                    break
 
-                item.link(
-                    href = url,
-                    title = item.title()
-                )
+            if url is None:
+                logging.error("Rumble: Failed to find video URL")
+                continue
 
-                if 'duration' in video:
-                    item.podcast.itunes_duration( video['duration'] )
-                else:
-                    logging.info("Rumble: Failed to pull video duration.")
+            item.link(
+                href = url,
+                title = item.title()
+            )
 
-                if 'upload_date' in video:
-                    date = dateutil.parser.parse( video['upload_date'] )
-                    item.pubDate( date )
-                else:
-                    logging.info("Rumble: Failed to pull video date.")
+            if 'duration' in video:
+                item.podcast.itunes_duration( video['duration'] )
+            else:
+                logging.info("Rumble: Failed to pull video duration.")
 
-                item.enclosure(
-                    url = url,
-                    type = ""
-                )
+            if 'upload_date' in video:
+                date = dateutil.parser.parse( video['upload_date'] )
+                item.pubDate( date )
+            else:
+                logging.info("Rumble: Failed to pull video date.")
+
+            item.enclosure(
+                url = url,
+                type = ""
+            )
         return feed.rss_str( pretty=True )
 
 class UserHandler(web.RequestHandler):
