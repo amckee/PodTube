@@ -262,8 +262,8 @@ def get_youtube_url(video):
     yt = None
 
     try:
-        # changing the client at least used to help fix issues. Options are: WEB, WEB, ANDROID, TVHTML5
-        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='MWEB')
+        # changing the client at least used to help fix issues. Options are: WEB, MWEB, ANDROID, TVHTML5
+        yt = YouTube(yturl, use_oauth=True, allow_oauth_cache=True, client='ANDROID')
     except Exception as e:
         logging.error( 'YouTube: Error returned by Youtube: %s', e )
         return e
