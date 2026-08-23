@@ -9,7 +9,8 @@ from tornado import web
 
 __version__ = 'v2024.07.09.2'
 
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36'
+              
 
 class ChannelHandler(web.RequestHandler):
     """
