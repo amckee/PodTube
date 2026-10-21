@@ -223,23 +223,23 @@ class VideoHandler(web.RequestHandler):
         # Define the JSON data for the API request.
         json_data = {
             'video_id': video_id,
-            'offset': 0,
-            'limit': 20,
         }
+            # 'offset': 0,
+            # 'limit': 20,
 
         # Send a POST request to the Bitchute API to fetch the video details.
-        response = requests.post("https://api.bitchute.com/api/beta9/video",
+        response = requests.post("https://api.bitchute.com/api/beta/video/media",
                                 headers=headers, json=json_data, timeout=10)
-        video = response.json()
+        if response.status_code == 200:
+            video = response.json()
 
-        # Extract the channel ID and video ID from the API response.
-        channel_id = video['channel']['channel_id']
-        video_id = video['video_id']
-
-        # Construct the video URL using the channel ID and video ID.
-        video_url = f"https://seedxvj21.bitchute.com/{channel_id}/{video_id}.mp4"
-
-        return video_url
+            # Construct the video URL using the channel ID and video ID.
+            video_url = video['media_url']
+            return video_url
+        else:
+            logging.info("Bitchute: Got HTTP code %s asking for video %s" % (response.status_code, video_id))
+            self.write("Bitchute responded with %s", response.status_code)
+            self.finish()
 
     def get(self, video):
         """
