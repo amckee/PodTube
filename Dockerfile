@@ -9,6 +9,8 @@ WORKDIR /opt/
 ADD ./ /opt/
 RUN apt update
 RUN apt -y upgrade
+RUN python -m venv venv
+RUN source venv/bin/activate
 RUN pip install -r requirements.txt
 
 # RUN pip install git+https://github.com/JuanBindez/pytubefix.git
