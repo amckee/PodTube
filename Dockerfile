@@ -2,15 +2,15 @@
 
 FROM python:3.12
 
-LABEL net.ftawesome.home.version='2026.11.22.2'
+LABEL net.ftawesome.home.version='2026.11.22.3'
 
 WORKDIR /opt/
 
 ADD ./ /opt/
 RUN apt update
 RUN apt -y upgrade
-RUN python -m venv venv
-RUN source venv/bin/activate
+# RUN python -m venv venv
+# RUN source venv/bin/activate
 RUN pip install -r requirements.txt
 
 # RUN pip install git+https://github.com/JuanBindez/pytubefix.git
