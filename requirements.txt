@@ -7,9 +7,6 @@ feedgen
 # pytube3
 # ssl
 # pytube
-# pytubefix
 tornado
 pytz
-# cloudscraper
-git+https://github.com/JuanBindez/pytubefix.git
-#git+https://github.com/JuanBindez/pytubefix.git@fbeec3640fffb18e8031edbc8c88d1d205a076f7
+pytubefix @ git+https://github.com/JuanBindez/pytubefix.git@v11.2.2
