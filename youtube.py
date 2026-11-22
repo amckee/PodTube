@@ -33,7 +33,7 @@ playlist_feed = {}
 channel_feed = {}
 channel_name_to_id = {}
 
-__version__ = 'v2024.11.11.1'
+__version__ = '2026.11.22.1'
 
 conversion_queue = {}
 converting_lock = Semaphore(2)

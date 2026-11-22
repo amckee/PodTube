@@ -6,7 +6,7 @@ import json
 from feedgen.feed import FeedGenerator
 from tornado import web
 
-__version__ = 'v2026.03.05.2'
+__version__ = '2026.03.05.2'
 
 class ChannelHandler(web.RequestHandler):
     def head(self, channel):
